@@ -4,7 +4,7 @@ from scipy.special import softmax
 from enum import Enum
 
 
-class IrritabilityAgent(mesa.Agent):
+class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     class Action(Enum):
         NEUTRAL = (0, "theta_N", "p_N")
         FRIENDLY = (1, "theta_F", "p_F")
@@ -18,6 +18,7 @@ class IrritabilityAgent(mesa.Agent):
             return obj
 
     _variable_names = [
+        # Variables
         "V",             # estimated value of the current state
         "M_A",           # current anger/frustration
         "theta_N_w0",
@@ -35,27 +36,65 @@ class IrritabilityAgent(mesa.Agent):
         "a",              # current action chosen
         "r",             # current reward
         "rpe",           # current reward prediction error
-    ]
 
-    _parameter_names = [
+        # Parameters
         "lambda_A",
         "C"
     ]
 
-    def __init__(self, model, init_variables: Dict, init_parameters: Dict):
+    def __init__(
+        self,
+        model,
+        V=None,
+        M_A=None,
+        theta_N_w0=None,
+        theta_N_w1=None,
+        theta_N=None,
+        theta_F_w0=None,
+        theta_F_w1=None,
+        theta_F=None,
+        theta_A_w0=None,
+        theta_A_w1=None,
+        theta_A=None,
+        p_N=None,
+        p_F=None,
+        p_A=None,
+        a=None,
+        r=None,
+        rpe=None,
+        lambda_A=None,
+        C=None
+    ):
         super().__init__(model)
 
         # TODO: check if init_variable.keys() match _variable_names
-
-        # TODO: check if init_parameters.keys() match _parameter_names
 
         # TODO: check for invariants here (e.g. some parameters must be
         # in [0,1])
 
         # raise ValueError()
 
-        self._variables = init_variables
-        self._parameters = init_parameters
+        self._variables = {
+            "V": V,
+            "M_A": M_A,
+            "theta_N_w0": theta_N_w0,
+            "theta_N_w1": theta_N_w1,
+            "theta_N": theta_N,
+            "theta_F_w0": theta_F_w0,
+            "theta_F_w1": theta_F_w1,
+            "theta_F": theta_F,
+            "theta_A_w0": theta_A_w0,
+            "theta_A_w1": theta_A_w1,
+            "theta_A": theta_A,
+            "p_N": p_N,
+            "p_F": p_F,
+            "p_A": p_A,
+            "a": a,
+            "r": r,
+            "rpe": rpe,
+            "lambda_A": lambda_A,
+            "C": C
+        }
 
         self._variables["neutral_counter"] = 0
         self._variables["friendly_counter"] = 0
@@ -66,9 +105,6 @@ class IrritabilityAgent(mesa.Agent):
 
     def print_variables(self):
         print(self._variables)
-
-    def print_parameters(self):
-        print(self._parameters)
 
     def calculate_action_tendencies(self):
         self._variables["theta_N"] = self._variables["theta_N_w0"]
@@ -136,9 +172,10 @@ class IrritabilityAgent(mesa.Agent):
     def update_emotions_and_action_tendencies(self):
         rpe = self._variables["rpe"]
         M_A = self._variables["M_A"]
-        lambda_A = self._parameters["lambda_A"]
+        lambda_A = self._variables["lambda_A"]
+        C = self._variables["C"]
 
         # recursive emotion update rule
-        self._variables["M_A"] = M_A + (1-lambda_A) * (rpe-M_A)
+        self._variables["M_A"] = M_A + (1-lambda_A) * (C*rpe-M_A)
 
         self.calculate_action_tendencies()
