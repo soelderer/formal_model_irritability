@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+seaborn
+mesa
+networkx
+solara
+altair
