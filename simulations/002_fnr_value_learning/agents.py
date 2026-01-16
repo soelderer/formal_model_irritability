@@ -70,7 +70,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
         self._variables["trial_nr"] += 1
 
-        if self._variables["trial_nr"] == 30 and self._variables[
+        if self._variables["trial_nr"] == 100 and self._variables[
             "block_nr"
         ] == 1:
             self._variables["block_nr"] += 1
