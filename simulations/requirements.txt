@@ -6,3 +6,4 @@ mesa
 networkx
 solara
 altair
+pyarrow
