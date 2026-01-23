@@ -23,7 +23,7 @@ class IrritabilityModel(mesa.Model):
         eta=None,
         gamma=None
     ):
-        super().__init__(seed=seed)
+        super().__init__()
 
         # TODO: check for invariants here (e.g. some parameters must be
         # in [0,1])
