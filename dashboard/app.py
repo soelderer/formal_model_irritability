@@ -50,5 +50,8 @@ content = html.Div(dash.page_container, style=CONTENT_STYLE)
 
 app.layout = html.Div([sidebar, content])
 
+# Expose the Flask server for Gunicorn
+server = app.server
+
 if __name__ == "__main__":
     app.run(debug=True)
