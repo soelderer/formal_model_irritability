@@ -1,6 +1,8 @@
 from dash import Dash, html, dcc
 import dash
 import dash_bootstrap_components as dbc
+import webbrowser
+import threading
 
 app = Dash(
     __name__,
@@ -53,9 +55,14 @@ app.layout = html.Div([sidebar, content])
 # Expose the Flask server for Gunicorn
 server = app.server
 
+def open_browser():
+    webbrowser.open("http://127.0.0.1:8050")
+
 if __name__ == "__main__":
-    app.run(debug=True,
-            host="0.0.0.0",
-            port=80,
-            threaded=True,
+    # Start browser in a thread
+    threading.Timer(1, open_browser).start()
+
+    app.run(debug=False,
+            host="127.0.0.1",
+            port=8050,
     )

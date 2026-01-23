@@ -2,4 +2,5 @@ dash
 dash_bootstrap_components
 pandas
 pyarrow
+numpy
 gunicorn
