@@ -23,4 +23,4 @@ EXPOSE 80
 
 # Use gunicorn to serve the Dash app
 # app.py must define `server = app.server`
-CMD ["gunicorn", "-b", "0.0.0.0:80", "app:server", "--workers=4", "--threads=4", "--timeout=120"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "app:server", "--workers=4", "--threads=4", "--timeout=300"]
