@@ -10,19 +10,14 @@ import gc
 
 dash.register_page(__name__, path="/simulation2", name="Simulation 2")
 
-df2 = pd.read_parquet("data/002_fnr_value_learning/002_fnr_value_learning_summary.parquet")
+meta_df = pd.read_parquet("data/002_fnr_value_learning/meta_info.parquet")
+n_iterations = int(meta_df["n_iterations"].iloc[0])
+lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
+eta_vals = meta_df["eta_vals"].iloc[0]
+gamma_vals = meta_df["gamma_vals"].iloc[0]
+C_vals = meta_df["C_vals"].iloc[0]
 
-lambda_A_vals = sorted(df2["lambda_A"].unique())
-eta_vals = sorted(df2["eta"].unique())
-gamma_vals = sorted(df2["gamma"].unique())
-C_vals = sorted(df2["C"].unique())
-
-# Get number of iterations
-with open("data/002_fnr_value_learning/n_iterations", "r") as file:
-    n_iterations = int(file.readline())
-
-# Memory management
-del df2
+del meta_df
 gc.collect()
 
 # Dropdown options
