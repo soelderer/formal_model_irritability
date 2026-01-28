@@ -6,10 +6,10 @@ import numpy as np
 
 dash.register_page(__name__, path="/simulation1", name="Simulation 1")
 
-df = pd.read_parquet("data/001_fnr_impulse_response.parquet")
+meta_df = pd.read_parquet("data/001_fnr_impulse_response/meta_info.parquet")
 
-theta_vals = sorted(df["theta_A_w1"].unique())
-C_vals = sorted(df["C"].unique())
+theta_vals = meta_df["theta_vals"].iloc[0]
+C_vals = meta_df["C_vals"].iloc[0]
 
 layout = [
     html.H1(children="Simulation 1",
@@ -65,6 +65,10 @@ layout = [
 )
 
 def update_graph(theta_A_w1, C):
+    df = pd.read_parquet(
+        "data/001_fnr_impulse_response/001_fnr_impulse_response.parquet"
+    )
+
     dff = df[(df["theta_A_w1"] == theta_A_w1) &
              (np.isclose(df["C"], C))]
 

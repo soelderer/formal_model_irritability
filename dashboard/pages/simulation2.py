@@ -234,7 +234,6 @@ def update_graph(lambda_A, eta, gamma, C, selected_iteration):
         # convert to pandas and sort
         dff = table.to_pandas().sort_values("Step")
 
-
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
         # V on primary y-axis (auto scale)
