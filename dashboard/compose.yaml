@@ -1,0 +1,15 @@
+services:
+  dashboard:
+    image: formal_model_dashboard:latest
+    container_name: formal_model_dashboard
+    ports:
+      - "8050:80" # map host port 8050 to container port 80
+    volumes:
+      - ../simulations/001_fnr_impulse_response/output/dashboard:/app/data/001_fnr_impulse_response
+      - ../simulations/002_fnr_value_learning/output/dashboard:/app/data/002_fnr_value_learning
+      - ../simulations/003_fnr_value_learning_extended/output/dashboard:/app/data/003_fnr_value_learning_extended
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
