@@ -7,6 +7,8 @@ import pandas as pd
 import pyarrow.parquet as pq
 import numpy as np
 import gc
+import glob
+import re
 import os
 import config
 
@@ -20,7 +22,27 @@ meta_df = pd.read_parquet(
     )
 )
 
-n_iterations = int(meta_df["n_iterations"].iloc[0])
+files = glob.glob(
+    os.path.join(
+        config.DATA_DIR,
+        "002_fnr_value_learning",
+        "002_fnr_value_learning_*.parquet"
+    )
+)
+
+# Determine the available iterations by filename
+# Files must follow this convention: 003_value_learning_i.parquet
+n_iterations = 0
+iterations = []
+for f in files:
+    match = re.search(r"_(\d+)\.parquet$", f)
+
+    if match:
+        iterations += [int(match.group(1))]
+
+if iterations:
+    n_iterations = len(iterations)
+
 lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
 eta_vals = meta_df["eta_vals"].iloc[0]
 gamma_vals = meta_df["gamma_vals"].iloc[0]
@@ -33,7 +55,7 @@ gc.collect()
 
 # Dropdown options
 dropdown_options = [{"label": "Expected", "value": "expected"}] + [
-    {"label": f"Iteration {i}", "value": i} for i in range(n_iterations)
+    {"label": f"Iteration {i}", "value": i} for i in iterations
 ]
 
 

@@ -3,10 +3,18 @@ from dash import html, dcc, callback, Output, Input
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import config
+import os
 
 dash.register_page(__name__, path="/simulation1", name="Simulation 1")
 
-meta_df = pd.read_parquet("data/001_fnr_impulse_response/meta_info.parquet")
+meta_df = pd.read_parquet(
+    os.path.join(
+        config.DATA_DIR,
+        "001_fnr_impulse_response",
+        "meta_info.parquet"
+    )
+)
 
 theta_vals = meta_df["theta_vals"].iloc[0]
 C_vals = meta_df["C_vals"].iloc[0]
@@ -51,7 +59,8 @@ layout = [
             ], style={"width": "20%",
                       "display": "inline-block",
                       "padding": "0 10px"}),
-        ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
+        ], style={"display": "flex", "align-items": "center", "gap": "10px",
+                  "padding-bottom": "40px"}),
         html.Div([
             dcc.Graph(id='sim1-graph-content')
         ], style={"width": "45%"})
@@ -66,7 +75,11 @@ layout = [
 
 def update_graph(theta_A_w1, C):
     df = pd.read_parquet(
-        "data/001_fnr_impulse_response/001_fnr_impulse_response.parquet"
+        os.path.join(
+            config.DATA_DIR,
+            "001_fnr_impulse_response",
+            "001_fnr_impulse_response.parquet"
+        )
     )
 
     dff = df[(df["theta_A_w1"] == theta_A_w1) &

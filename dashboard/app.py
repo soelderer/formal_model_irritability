@@ -3,6 +3,7 @@ import dash
 import dash_bootstrap_components as dbc
 import webbrowser
 import threading
+import config
 
 app = Dash(
     __name__,
@@ -11,6 +12,8 @@ app = Dash(
 )
 
 app.server.config["PROPAGATE_EXCEPTIONS"] = True
+
+
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -55,12 +58,12 @@ app.layout = html.Div([sidebar, content])
 # Expose the Flask server for Gunicorn
 server = app.server
 
-def open_browser():
-    webbrowser.open("http://127.0.0.1:8050")
+# def open_browser():
+#     webbrowser.open("http://127.0.0.1:8050")
 
 if __name__ == "__main__":
     # Start browser in a thread
-    threading.Timer(1, open_browser).start()
+    # threading.Timer(1, open_browser).start()
 
     app.run(debug=False,
             host="127.0.0.1",

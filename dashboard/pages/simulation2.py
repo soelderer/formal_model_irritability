@@ -7,11 +7,42 @@ import pandas as pd
 import pyarrow.parquet as pq
 import numpy as np
 import gc
+import glob
+import re
+import os
+import config
 
 dash.register_page(__name__, path="/simulation2", name="Simulation 2")
 
-meta_df = pd.read_parquet("data/002_fnr_value_learning/meta_info.parquet")
-n_iterations = int(meta_df["n_iterations"].iloc[0])
+meta_df = pd.read_parquet(
+    os.path.join(
+        config.DATA_DIR,
+        "002_fnr_value_learning",
+        "meta_info.parquet"
+    )
+)
+
+files = glob.glob(
+    os.path.join(
+        config.DATA_DIR,
+        "002_fnr_value_learning",
+        "002_fnr_value_learning_*.parquet"
+    )
+)
+
+# Determine the available iterations by filename
+# Files must follow this convention: 002_value_learning_i.parquet
+n_iterations = 0
+iterations = []
+for f in files:
+    match = re.search(r"_(\d+)\.parquet$", f)
+
+    if match:
+        iterations += [int(match.group(1))]
+
+if iterations:
+    n_iterations = len(iterations)
+
 lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
 eta_vals = meta_df["eta_vals"].iloc[0]
 gamma_vals = meta_df["gamma_vals"].iloc[0]
@@ -22,7 +53,7 @@ gc.collect()
 
 # Dropdown options
 dropdown_options = [{"label": "Expected", "value": "expected"}] + [
-    {"label": f"Iteration {i}", "value": i} for i in range(n_iterations)
+    {"label": f"Iteration {i}", "value": i} for i in iterations
 ]
 
 
@@ -31,7 +62,32 @@ layout = [
             style={"textAlign": "center"}),
     html.Div([
         html.Div([
-            html.P(children="In simulation 2, we did...")
+            html.P(children="In simulation 2, we did..."),
+            html.Table(
+                [
+                    html.Tr([
+                        html.Th("Parameter", style={"padding": "0 12px"}),
+                        html.Th("Range", style={"padding": "0 12px"}),
+                        html.Th("Interpretation", style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("η", style={"padding": "0 12px"}),
+                        html.Td("[0, 1]", style={"padding": "0 12px"}),
+                        html.Td("Learning rate: how quickly value expectations update", style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("γ", style={"padding": "0 12px"}),
+                        html.Td("[0, 1]", style={"padding": "0 12px"}),
+                        html.Td("Discount factor: weight given to future rewards", style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("λ_A", style={"padding": "0 12px"}),
+                        html.Td("[0, 1]", style={"padding": "0 12px"}),
+                        html.Td("Affective inertia: higher values → slower emotion updates", style={"padding": "0 12px"}),
+                    ]),
+                ],
+                style={"borderCollapse": "separate", "borderSpacing": "0 6px"},
+            )
         ], style={"paddingBottom": "20px"}),
         html.Div([
             html.Div([
@@ -135,8 +191,13 @@ def update_graph(lambda_A, eta, gamma, C, selected_iteration):
 
         # read only filtered rows and needed columns
         cols_needed = ["Step", "V_mean", "V_std", "M_A_mean", "M_A_std"]
+
         table = pq.read_table(
-            "data/002_fnr_value_learning/002_fnr_value_learning_summary.parquet",
+            os.path.join(
+                config.DATA_DIR,
+                "002_fnr_value_learning",
+                "002_fnr_value_learning_summary.parquet"
+            ),
             columns=cols_needed,
             filters=filters
         )
@@ -226,7 +287,11 @@ def update_graph(lambda_A, eta, gamma, C, selected_iteration):
 
         # read only filtered rows and selected columns
         table = pq.read_table(
-            f"data/002_fnr_value_learning/002_fnr_value_learning_{selected_iteration}.parquet",
+            os.path.join(
+                config.DATA_DIR,
+                "002_fnr_value_learning",
+                f"002_fnr_value_learning_{selected_iteration}.parquet"
+            ),
             columns=cols_needed,
             filters=filters
         )
@@ -275,7 +340,7 @@ def update_graph(lambda_A, eta, gamma, C, selected_iteration):
         fig.add_vline(x=100, line_width=1, line_color="black", line_dash="dash")
 
         fig.update_yaxes(title_text="Value of state", secondary_y=False)
-        fig.update_yaxes(title_text="Anger/frustration", secondary_y=True, range=[-0.7, 0.7])
+        fig.update_yaxes(title_text="Anger/frustration", secondary_y=True, range=[-1, 1])
         fig.update_xaxes(title_text="Step")
 
         return fig

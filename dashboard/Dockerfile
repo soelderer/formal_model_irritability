@@ -9,6 +9,9 @@ RUN pip install --upgrade pip setuptools wheel build
 
 RUN pip install numpy==2.3.5
 
+# For measuring peak memory we need "time"
+RUN apt-get update && apt-get install -y time
+
 # Copy requirements
 COPY requirements.txt ./requirements.txt
 
@@ -23,4 +26,4 @@ EXPOSE 80
 
 # Use gunicorn to serve the Dash app
 # app.py must define `server = app.server`
-CMD ["gunicorn", "-b", "0.0.0.0:80", "app:server", "--workers=4", "--threads=4", "--timeout=300"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "app:server", "--workers=1", "--threads=2", "--timeout=300"]
