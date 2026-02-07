@@ -122,7 +122,8 @@ layout = [
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
                     dots=False,
-                    id="sim3-lambda_A-slider"
+                    id="sim3-lambda_A-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -138,7 +139,8 @@ layout = [
                     marks={float(v): "" for v in C_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim3-C-slider"
+                    id="sim3-C-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -154,7 +156,8 @@ layout = [
                     marks={float(v): "" for v in eta_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim3-eta-slider"
+                    id="sim3-eta-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -170,7 +173,8 @@ layout = [
                     marks={float(v): "" for v in gamma_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim3-gamma-slider"
+                    id="sim3-gamma-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -186,7 +190,8 @@ layout = [
                     marks={float(v): "" for v in alpha_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim3-alpha-slider"
+                    id="sim3-alpha-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -202,7 +207,7 @@ layout = [
                     marks={float(v): "" for v in kappa_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim3-kappa-slider"
+                    id="sim3-kappa-slider",
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -214,7 +219,8 @@ layout = [
                 options=dropdown_options,
                 value="expected",
                 clearable=False,
-                style={"width": "200px"}
+                style={"width": "200px"},
+                persistence=True,
             ),
         ], style={"paddingTop": "20px"}),
         html.Div([

@@ -104,7 +104,8 @@ layout = [
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
                     dots=False,
-                    id="sim2-lambda_A-slider"
+                    id="sim2-lambda_A-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -120,7 +121,8 @@ layout = [
                     marks={float(v): "" for v in C_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim2-C-slider"
+                    id="sim2-C-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -136,7 +138,8 @@ layout = [
                     marks={float(v): "" for v in eta_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim2-eta-slider"
+                    id="sim2-eta-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -152,7 +155,8 @@ layout = [
                     marks={float(v): "" for v in gamma_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim2-gamma-slider"
+                    id="sim2-gamma-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -164,7 +168,8 @@ layout = [
                 options=dropdown_options,
                 value="expected",
                 clearable=False,
-                style={"width": "200px"}
+                style={"width": "200px"},
+                persistence=True,
             ),
         ], style={"paddingTop": "20px"}),
         html.Div([

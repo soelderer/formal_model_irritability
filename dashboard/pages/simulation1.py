@@ -38,7 +38,8 @@ layout = [
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
                     dots=False,
-                    id="sim1-theta_A_w1-slider"
+                    id="sim1-theta_A_w1-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -54,7 +55,8 @@ layout = [
                     marks={float(v): "" for v in C_vals},
                     tooltip={"always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim1-C-slider"
+                    id="sim1-C-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -67,12 +69,12 @@ layout = [
     ])
 ]
 
+
 @callback(
     Output("sim1-graph-content", "figure"),
     Input("sim1-theta_A_w1-slider", "value"),
     Input("sim1-C-slider", "value")
 )
-
 def update_graph(theta_A_w1, C):
     df = pd.read_parquet(
         os.path.join(

@@ -165,7 +165,8 @@ layout = [
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
                     dots=False,
-                    id="sim4-lambda_A-slider"
+                    id="sim4-lambda_A-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -186,7 +187,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-eta-slider"
+                    id="sim4-eta-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -207,7 +209,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-gamma-slider"
+                    id="sim4-gamma-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -228,7 +231,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-alpha-slider"
+                    id="sim4-alpha-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -249,7 +253,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-kappa-slider"
+                    id="sim4-kappa-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -270,7 +275,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-lambda_C-slider"
+                    id="sim4-lambda_C-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -291,7 +297,8 @@ layout = [
                     tooltip={
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
-                    id="sim4-midpoint-slider"
+                    id="sim4-midpoint-slider",
+                    persistence=True,
                 ),
             ], style={"width": "20%",
                       "display": "inline-block",
@@ -304,7 +311,8 @@ layout = [
                 value="expected",
                 clearable=False,
                 style={
-                    "width": "200px"}
+                    "width": "200px"},
+                persistence=True,
             ),
         ], style={"paddingTop": "20px"}),
         html.Div([
