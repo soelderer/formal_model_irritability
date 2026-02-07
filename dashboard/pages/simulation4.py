@@ -515,7 +515,11 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             ("alpha",
              "=", alpha),
             ("kappa",
-             "=", kappa)
+             "=", kappa),
+            ("lambda_C",
+             "=", lambda_C),
+            ("midpoint",
+             "=", midpoint),
         ]
 
         cols_needed = [
