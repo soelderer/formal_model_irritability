@@ -1,8 +1,10 @@
 import mesa  # agent-based model package
-from typing import Dict
+import numpy as np
+from typing import Dict, Optional, Union
 from scipy.special import softmax
 from enum import Enum
 
+RealNumber = Union[float, np.floating]
 
 class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     class Action(Enum):
@@ -44,35 +46,73 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
     def __init__(
         self,
-        model,
-        V=None,
-        M_A=None,
-        theta_N_w0=None,
-        theta_N_w1=None,
-        theta_N=None,
-        theta_F_w0=None,
-        theta_F_w1=None,
-        theta_F=None,
-        theta_A_w0=None,
-        theta_A_w1=None,
-        theta_A=None,
-        p_N=None,
-        p_F=None,
-        p_A=None,
-        a=None,
-        r=None,
-        rpe=None,
-        lambda_A=None,
-        C=None
+        model: mesa.Model,
+        V: Optional[RealNumber]=None,
+        M_A: Optional[RealNumber]=None,
+        theta_N_w0: Optional[RealNumber]=None,
+        theta_N_w1: Optional[RealNumber]=None,
+        theta_N: Optional[RealNumber]=None,
+        theta_F_w0: Optional[RealNumber]=None,
+        theta_F_w1: Optional[RealNumber]=None,
+        theta_F: Optional[RealNumber]=None,
+        theta_A_w0: Optional[RealNumber]=None,
+        theta_A_w1: Optional[RealNumber]=None,
+        theta_A: Optional[RealNumber]=None,
+        p_N: Optional[RealNumber]=None,
+        p_F: Optional[RealNumber]=None,
+        p_A: Optional[RealNumber]=None,
+        a: Optional[str]=None,
+        r: Optional[RealNumber]=None,
+        rpe: Optional[RealNumber]=None,
+        lambda_A: Optional[RealNumber]=None,
+        C: Optional[RealNumber]=None
     ):
         super().__init__(model)
 
-        # TODO: check if init_variable.keys() match _variable_names
+        # Check invariants
 
-        # TODO: check for invariants here (e.g. some parameters must be
-        # in [0,1])
+        # C must be in [0,1]
+        if C is not None and not (0 <= C <= 1):
+            raise ValueError(f"C must be between 0 and 1, got {C}")
 
-        # raise ValueError()
+        # lambda_A must be in [0,1]
+        if lambda_A is not None and not (0 <= lambda_A <= 1):
+            raise ValueError(
+                f"lambda_A must be between 0 and 1, got {lambda_A}"
+            )
+
+        # Check theta_N_w0 equals theta_N
+        if theta_N_w0 is not None and theta_N is not None:
+            if theta_N_w0 != theta_N:
+                raise ValueError(
+                    f"theta_N_w0 ({theta_N_w0}) must equal theta_N ({theta_N})"
+                )
+
+        # Check theta_F_w0 equals theta_F
+        if theta_F_w0 is not None and theta_F is not None:
+            if theta_F_w0 != theta_F:
+                raise ValueError(
+                    f"theta_F_w0 ({theta_F_w0}) must equal theta_F ({theta_F})"
+                )
+
+        # Check theta_A equals theta_A_w0 + theta_A_w1 * M_A
+        if (
+            theta_A_w0 is not None
+            and theta_A_w1 is not None
+            and theta_A is not None
+            and M_A is not None
+        ):
+            expected_theta_A = theta_A_w0 + theta_A_w1 * M_A
+
+            if theta_A != expected_theta_A:
+                msg = (
+                    f"theta_A ({theta_A}) must equal "
+                    f"theta_A_w0 ({theta_A_w0}) + "
+                    f"theta_A_w1 ({theta_A_w1}) * M_A ({M_A}) = "
+                    f"{expected_theta_A}"
+                )
+                raise ValueError(msg)
+
 
         self._variables = {
             "V": V,

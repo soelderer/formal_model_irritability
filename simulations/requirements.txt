@@ -7,3 +7,4 @@ networkx
 solara
 altair
 pyarrow
+pytest
