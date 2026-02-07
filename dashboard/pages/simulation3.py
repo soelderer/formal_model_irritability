@@ -336,7 +336,7 @@ def update_graph(lambda_A, eta, gamma, C, alpha, kappa, selected_iteration):
         fig.update_yaxes(title_text="Value of state", row=1, col=1)
         fig.update_yaxes(
             title_text="Anger/frustration",
-            range=[-0.7, 0.7],
+            range=[-2, 2],
             row=2,
             col=1,
         )
@@ -412,7 +412,7 @@ def update_graph(lambda_A, eta, gamma, C, alpha, kappa, selected_iteration):
         fig.update_yaxes(title_text="Value of state", row=1, col=1)
         fig.update_yaxes(
             title_text="Anger/frustration",
-            range=[-1, 1],
+            range=[-2, 2],
             row=2,
             col=1,
         )
