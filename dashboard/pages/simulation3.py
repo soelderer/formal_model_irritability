@@ -25,8 +25,8 @@ meta_df = pd.read_parquet(
 files = glob.glob(
     os.path.join(
         config.DATA_DIR,
-        "002_fnr_value_learning",
-        "002_fnr_value_learning_*.parquet"
+        "003_fnr_value_learning",
+        "003_fnr_value_learning_*.parquet"
     )
 )
 
