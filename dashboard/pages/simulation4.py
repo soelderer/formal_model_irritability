@@ -348,7 +348,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
 
         # read only filtered rows and needed columns
         cols_needed = ["Step", "V_mean", "V_std", "M_A_mean", "M_A_std",
-                       "M_S_mean", "M_S_std"]
+                       "M_S_mean", "M_S_std", "C"]
 
         table = pq.read_table(
             os.path.join(
@@ -466,6 +466,19 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             col=1,
         )
 
+        # --- C trace (bottom: emotions, no stderr) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["C"],
+                mode="lines",
+                name="C",
+                line=dict(color="green"),
+            ),
+            row=2,
+            col=1,
+        )
+
         fig.add_hline(y=0, row=2, col=1)
         fig.add_vline(x=100, line_dash="dash")
 
@@ -555,6 +568,19 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 mode="lines",
                 name="Sadness",
                 line=dict(color="orange"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        # --- C trace (bottom: emotions, no stderr) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["C"],
+                mode="lines",
+                name="C",
+                line=dict(color="green"),
             ),
             row=2,
             col=1,
