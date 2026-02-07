@@ -71,8 +71,18 @@ layout = [
         html.Div([
             html.P(
                 children=(
-                    "In simulation 4, we introduced sadness and "
-                    "modified C to decline in block 2."
+                    "In simulation 4, we introduced sadness as a negative "
+                    "emotion in situations perceived as uncontrollable. "
+                    "Here, we show how anger/frustration and sadness depend "
+                    "on the controllability C. We chose the same paradigm "
+                    "as in simulation 3, but we modulate C such that it is "
+                    "high in the first block and then declines logistically "
+                    "in the second block. The midpoint and the rate of decay "
+                    "can be tuned by the researcher, to investigate how the "
+                    "emotions behave in response. "
+                    "The choice of a logistic decay is purely a pragmatic one "
+                    "for demonstration purposes; we do not make strong claims "
+                    "about how C is inferred in reality. "
                 )
             ),
             html.Table(
@@ -509,7 +519,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
         ]
 
         cols_needed = [
-            "Step", "V", "M_A", "M_S"]
+            "Step", "V", "M_A", "M_S", "C"]
 
         # read only filtered rows and selected columns
         table = pq.read_table(
