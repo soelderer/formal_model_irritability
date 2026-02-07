@@ -14,7 +14,6 @@ app = Dash(
 app.server.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -68,4 +67,4 @@ if __name__ == "__main__":
     app.run(debug=False,
             host="127.0.0.1",
             port=8050,
-    )
+            )

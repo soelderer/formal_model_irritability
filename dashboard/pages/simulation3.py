@@ -25,7 +25,7 @@ meta_df = pd.read_parquet(
 files = glob.glob(
     os.path.join(
         config.DATA_DIR,
-        "003_fnr_value_learning",
+        "003_fnr_value_learning_extended",
         "003_fnr_value_learning_*.parquet"
     )
 )
@@ -75,17 +75,20 @@ layout = [
                     html.Tr([
                         html.Td("η", style={"padding": "0 12px"}),
                         html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Learning rate: how quickly value expectations update", style={"padding": "0 12px"}),
+                        html.Td("Learning rate: how quickly value expectations update", style={
+                                "padding": "0 12px"}),
                     ]),
                     html.Tr([
                         html.Td("γ", style={"padding": "0 12px"}),
                         html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Discount factor: weight given to future rewards", style={"padding": "0 12px"}),
+                        html.Td("Discount factor: weight given to future rewards", style={
+                                "padding": "0 12px"}),
                     ]),
                     html.Tr([
                         html.Td("λ_A", style={"padding": "0 12px"}),
                         html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Affective inertia: higher values → slower emotion updates", style={"padding": "0 12px"}),
+                        html.Td("Affective inertia: higher values → slower emotion updates", style={
+                                "padding": "0 12px"}),
                     ]),
                     html.Tr([
                         html.Td("α", style={"padding": "0 12px"}),
@@ -215,8 +218,9 @@ layout = [
             ),
         ], style={"paddingTop": "20px"}),
         html.Div([
-            dcc.Graph(id='sim3-graph-content')
-        ], style={"width": "60%"})
+            dcc.Graph(id="sim3-graph-content",
+                      config={"responsive": True})
+        ], style={"width": "60%", "height": "80vh"})
     ])
 ]
 
@@ -231,7 +235,6 @@ layout = [
     Input("sim3-kappa-slider", "value"),
     Input("sim3-iteration-selector", "value"),
 )
-
 def update_graph(lambda_A, eta, gamma, C, alpha, kappa, selected_iteration):
     if selected_iteration == "expected":
         filters = [
@@ -264,67 +267,80 @@ def update_graph(lambda_A, eta, gamma, C, alpha, kappa, selected_iteration):
         M_A_upper = dff["M_A_mean"] + dff["M_A_std"]
         M_A_lower = dff["M_A_mean"] - dff["M_A_std"]
 
-        # create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = make_subplots(
+            rows=2,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+        )
 
-        # V line + shaded CI on primary y-axis
-        fig.add_trace(go.Scatter(
-            x=dff["Step"],
-            y=dff["V_mean"],
-            mode="lines",
-            name="Value of state",
-            line=dict(color="blue"),
-        ), secondary_y=False)
+        # --- V (top) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["V_mean"],
+                mode="lines",
+                name="Value of state",
+                line=dict(color="blue"),
+            ),
+            row=1,
+            col=1,
+        )
 
-        fig.add_trace(go.Scatter(
-            x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
-            y=np.concatenate([V_upper, V_lower[::-1]]),
-            fill='toself',
-            fillcolor='rgba(0,0,255,0.2)',
-            line=dict(color='rgba(255,255,255,0)'),
-            hoverinfo="skip",
-            showlegend=False,
-        ), secondary_y=False)
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([V_upper, V_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(0,0,255,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=1,
+            col=1,
+        )
 
-        # M_A line + shaded CI on secondary y-axis
-        fig.add_trace(go.Scatter(
-            x=dff["Step"],
-            y=dff["M_A_mean"],
-            mode="lines",
-            name="Anger/frustration",
-            line=dict(color="red"),
-        ), secondary_y=True)
+        fig.add_hline(y=0, row=1, col=1)
 
-        fig.add_trace(go.Scatter(
-            x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
-            y=np.concatenate([M_A_upper, M_A_lower[::-1]]),
-            fill='toself',
-            fillcolor='rgba(255,0,0,0.2)',
-            line=dict(color='rgba(255,255,255,0)'),
-            hoverinfo="skip",
-            showlegend=False,
-        ), secondary_y=True)
+        # --- M_A (bottom) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["M_A_mean"],
+                mode="lines",
+                name="Anger/frustration",
+                line=dict(color="red"),
+            ),
+            row=2,
+            col=1,
+        )
 
-        # horizontal and vertical reference lines
-        # ...for the emotions axis
-        fig.add_trace(go.Scatter(
-            x=[dff["Step"].min(), dff["Step"].max()],
-            y=[0, 0],
-            mode="lines",
-            line=dict(color="black", width=1),
-            showlegend=False,
-            hoverinfo="skip",
-            yaxis="y2",
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([M_A_upper, M_A_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(255,0,0,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=2,
+            col=1,
+        )
 
-        # ...and the value axis
-        fig.add_hline(y=0, line_width=1, line_color="black")
-        fig.add_vline(x=100, line_width=1, line_color="black", line_dash="dash")
+        fig.add_hline(y=0, row=2, col=1)
+        fig.add_vline(x=100, line_dash="dash")
 
-        # axis labels and range
-        fig.update_yaxes(title_text="Value of state", secondary_y=False)
-        fig.update_yaxes(title_text="Anger/frustration", secondary_y=True, range=[-0.7,0.7])
-        fig.update_xaxes(title_text="Step")
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
+        fig.update_yaxes(
+            title_text="Anger/frustration",
+            range=[-0.7, 0.7],
+            row=2,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=2, col=1)
 
         return fig
 
@@ -355,48 +371,51 @@ def update_graph(lambda_A, eta, gamma, C, alpha, kappa, selected_iteration):
         # convert to pandas and sort
         dff = table.to_pandas().sort_values("Step")
 
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = make_subplots(
+            rows=2,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+        )
 
-        # V on primary y-axis (auto scale)
+        # --- V (top, auto scale) ---
         fig.add_trace(
             go.Scatter(
-                x=dff["Step"], y=dff["V"],
+                x=dff["Step"],
+                y=dff["V"],
                 mode="lines",
                 name="Value of state",
                 line=dict(color="blue"),
             ),
-            secondary_y=False,
+            row=1,
+            col=1,
         )
 
-        # M_A on secondary y-axis (fixed scale)
+        fig.add_hline(y=0, row=1, col=1)
+
+        # --- M_A (bottom, fixed scale) ---
         fig.add_trace(
             go.Scatter(
-                x=dff["Step"], y=dff["M_A"],
+                x=dff["Step"],
+                y=dff["M_A"],
                 mode="lines",
                 name="Anger/frustration",
                 line=dict(color="red"),
             ),
-            secondary_y=True,
+            row=2,
+            col=1,
         )
 
-        # horizontal and vertical reference lines
-        # ...for the emotions axis
-        fig.add_trace(go.Scatter(
-            x=[dff["Step"].min(), dff["Step"].max()],
-            y=[0, 0],
-            mode="lines",
-            line=dict(color="black", width=1),
-            showlegend=False,
-            hoverinfo="skip",
-            yaxis="y2",
-        ))
+        fig.add_hline(y=0, row=2, col=1)
+        fig.add_vline(x=100, line_dash="dash")
 
-        # ...and the value axis
-        fig.add_hline(y=0, line_width=1, line_color="black")
-        fig.add_vline(x=100, line_width=1, line_color="black", line_dash="dash")
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
+        fig.update_yaxes(
+            title_text="Anger/frustration",
+            range=[-1, 1],
+            row=2,
+            col=1,
+        )
+    fig.update_xaxes(title_text="Step", row=2, col=1)
 
-        fig.update_yaxes(title_text="Value of state", secondary_y=False)
-        fig.update_yaxes(title_text="Anger/frustration", secondary_y=True, range=[-1, 1])
-        fig.update_xaxes(title_text="Step")
-
-        return fig
+    return fig
