@@ -31,6 +31,7 @@ meta_df = pd.read_parquet(
 
 theta_vals = meta_df["theta_vals"].iloc[0]
 C_vals = meta_df["C_vals"].iloc[0]
+lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
 
 layout = [
     html.H1(children="Simulation 1",
@@ -68,8 +69,13 @@ layout = [
                                 style={"padding": "0 12px"},
                             ),
                         ],
-                        style=config.bottomrule,
                     ),
+                    html.Tr([
+                        html.Td("λ_A", style={"padding": "0 12px"}),
+                        html.Td("[0, 1]", style={"padding": "0 12px"}),
+                        html.Td("Affective inertia: higher values → slower emotion updates", style={
+                                "padding": "0 12px"}),
+                    ], style=config.bottomrule),
                 ],
                 style=config.table_style,
             )
@@ -112,6 +118,23 @@ layout = [
             ], style={"width": "20%",
                       "display": "inline-block",
                       "padding": "0 10px"}),
+            html.Div([
+                html.Label("lambda_A", style={"textAlign": "center"}),
+                dcc.Slider(
+                    min=min(lambda_A_vals),
+                    max=max(lambda_A_vals),
+                    step=None,
+                    value=lambda_A_vals[0],
+                    marks={float(v): "" for v in lambda_A_vals},
+                    tooltip={"always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    dots=False,
+                    id="sim1-lambda_A-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
         ], style={"display": "flex", "align-items": "center", "gap": "10px",
                   "padding-bottom": "40px"}),
         html.Div([
@@ -124,9 +147,10 @@ layout = [
 @callback(
     Output("sim1-graph-content", "figure"),
     Input("sim1-theta_A_w1-slider", "value"),
-    Input("sim1-C-slider", "value")
+    Input("sim1-C-slider", "value"),
+    Input("sim1-lambda_A-slider", "value")
 )
-def update_graph(theta_A_w1, C):
+def update_graph(theta_A_w1, C, lambda_A):
     df = pd.read_parquet(
         os.path.join(
             config.DATA_DIR,
@@ -136,7 +160,9 @@ def update_graph(theta_A_w1, C):
     )
 
     dff = df[(df["theta_A_w1"] == theta_A_w1) &
-             (np.isclose(df["C"], C))]
+             (np.isclose(df["C"], C)) &
+             (np.isclose(df["lambda_A"], lambda_A))
+             ]
 
     fig = px.line(
         dff,
