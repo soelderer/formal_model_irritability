@@ -133,7 +133,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
         probs = softmax(logits)
 
-        # Store the "p_F" etc.
+        # Store the probabilities in "p_F" etc.
         for action in sorted(self.Action, key=lambda a: a.value):
             self._variables[action.prob_name] = probs[action.value]
 
@@ -164,21 +164,17 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         elif action is self.Action.AGGRESSIVE:
             self._variables["aggressive_counter"] += 1
 
-        reward = self.get_reward(action, self._variables)
+        reward = self.get_reward(action)
 
         rpe = reward - self._variables["V"]
 
         self._variables["r"] = reward
         self._variables["rpe"] = rpe
 
-        # print(f"{self._action_labels[action]} => {reward} reward, {rpe} RPE")
-
         return (reward, rpe)
 
-    def get_reward(self, action: "IrritabilityAgent.Action", _variables: Dict):
+    def get_reward(self, action: "IrritabilityAgent.Action"):
         # A simple non-reward
-
-        # print(f"calculating reward for step {self.model.steps}")
 
         if self.model.steps == 1:
             return -1
@@ -186,7 +182,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         else:
             return 0
 
-    def update_emotions_and_action_tendencies(self):
+    def update_emotions(self):
         rpe = self._variables["rpe"]
         M_A = self._variables["M_A"]
         lambda_A = self._variables["lambda_A"]
@@ -195,4 +191,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         # recursive emotion update rule
         self._variables["M_A"] = M_A + (1-lambda_A) * (C*rpe-M_A)
 
+    def update_emotions_and_action_tendencies(self):
+        self.update_emotions()
         self.calculate_action_tendencies()

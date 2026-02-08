@@ -36,7 +36,7 @@ def test_agent_initialization_no_anger_valid():
     assert agent._variables["theta_A_w0"] == pytest.approx(9.0)
     assert agent._variables["theta_A_w1"] == pytest.approx(10.0)
 
-    # Quick check on model-determined variables
+    # Quick check that model-determined variables were set
     assert "theta_A" in agent._variables
     assert "theta_F" in agent._variables
     assert "theta_N" in agent._variables
@@ -143,3 +143,143 @@ def test_choose_action_returns_enum():
         called_args, called_kwargs = mock_choice.call_args
         assert called_args[0] == 3
         assert list(called_kwargs["p"]) == [0.1, 0.3, 0.6]
+
+def test_get_reward_step_1():
+    # Setup agent
+    mock_model = Mock()
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=0, M_A=0,
+        theta_N_w0=0,
+        theta_F_w0=0,
+        theta_A_w0=0, theta_A_w1=0,
+    )
+    agent.model.steps = 1
+
+    # Must be -1 for all actions
+    reward = agent.get_reward(agent.Action.AGGRESSIVE)
+    assert reward == -1
+
+    reward = agent.get_reward(agent.Action.FRIENDLY)
+    assert reward == -1
+
+    reward = agent.get_reward(agent.Action.NEUTRAL)
+    assert reward == -1
+
+def test_get_reward_step_2():
+    # Setup agent
+    mock_model = Mock()
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=0, M_A=0,
+        theta_N_w0=0,
+        theta_F_w0=0,
+        theta_A_w0=0, theta_A_w1=0,
+    )
+    agent.model.steps = 2
+
+    # Must be 0 for all actions
+    reward = agent.get_reward(agent.Action.AGGRESSIVE)
+    assert reward == 0
+
+    reward = agent.get_reward(agent.Action.FRIENDLY)
+    assert reward == 0
+
+    reward = agent.get_reward(agent.Action.NEUTRAL)
+    assert reward == 0
+
+def test_act_neutral_step_1():
+    # Setup agent
+    mock_model = Mock()
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=0, M_A=0,
+        theta_N_w0=0,
+        theta_F_w0=0,
+        theta_A_w0=0, theta_A_w1=0,
+    )
+    agent.model.steps = 1
+
+    reward, rpe = agent.act(agent.Action.NEUTRAL)
+
+    assert reward == -1
+    assert rpe == -1
+
+    assert agent._variables["neutral_counter"] == 1
+    assert agent._variables["friendly_counter"] == 0
+    assert agent._variables["aggressive_counter"] == 0
+
+def test_act_aggressive_step_1():
+    # Setup agent
+    mock_model = Mock()
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=-1,  # RPE should be 0 because no surprise
+        M_A=0,
+        theta_N_w0=0,
+        theta_F_w0=0,
+        theta_A_w0=0, theta_A_w1=0,
+    )
+    agent.model.steps = 1
+
+    reward, rpe = agent.act(agent.Action.AGGRESSIVE)
+
+    assert reward == -1
+    assert rpe == 0
+
+    assert agent._variables["neutral_counter"] == 0
+    assert agent._variables["friendly_counter"] == 0
+    assert agent._variables["aggressive_counter"] == 1
+
+def make_agent_for_emotions(rpe=0.0, M_A=0.0, lambda_A=0.5, C=1.0,
+                            theta_A_w0=0.0, theta_A_w1=0.0,
+                            theta_N_w0=0.0, theta_F_w0=0.0):
+    """Helper to create a minimal agent with necessary variables"""
+    mock_model = Mock()
+    agent = IrritabilityAgent(
+        model=mock_model,
+        M_A=M_A,
+        lambda_A=lambda_A,
+        C=C,
+        theta_A_w0=theta_A_w0,
+        theta_A_w1=theta_A_w1,
+        theta_F_w0=theta_F_w0,
+        theta_N_w0=theta_N_w0
+    )
+    agent._variables["rpe"] = rpe
+    return agent
+
+def test_update_emotions_basic():
+    agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.5, C=1.0)
+    agent.update_emotions()
+
+    # M_A_new = 1 + (1-0.5)*(1*2 - 1) = 1 + 0.5*(1) = 1.5
+    assert agent._variables["M_A"] == pytest.approx(1.5)
+
+def test_update_emotions_lambda_zero():
+    agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.0, C=1.0)
+    agent.update_emotions()
+
+    # M_A_new = 1 + (1-0)*(1*2 -1) = 1 + 1*(1) = 2
+    assert agent._variables["M_A"] == pytest.approx(2.0)
+
+def test_update_emotions_lambda_one():
+    agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=1.0, C=1.0)
+    agent.update_emotions()
+
+    # M_A_new = 1 + (1-1)*(1*2-1) = 1 + 0*(1) = 1
+    assert agent._variables["M_A"] == pytest.approx(1.0)
+
+def test_update_emotions_zero_rpe():
+    agent = make_agent_for_emotions(rpe=0.0, M_A=1.0, lambda_A=0.5, C=1.0)
+    agent.update_emotions()
+
+    # M_A_new = 1 + 0.5*(1*0 -1) = 1 + 0.5*(-1) = 0.5
+    assert agent._variables["M_A"] == pytest.approx(0.5)
+
+def test_update_emotions_zero_C():
+    agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.5, C=0.0)
+    agent.update_emotions()
+
+    # M_A_new = 1 + 0.5*(0*2 -1) = 1 + 0.5*(-1) = 0.5
+    assert agent._variables["M_A"] == pytest.approx(0.5)

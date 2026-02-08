@@ -34,9 +34,6 @@ class IrritabilityModel(mesa.Model):
     ):
         super().__init__(seed=seed)
 
-        # TODO: check for invariants here (e.g. some parameters must be
-        # in [0,1])
-
         self.num_agents_ = num_agents
 
         # Override default RNG to numpy (supports multinomial distribution)
