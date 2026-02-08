@@ -94,7 +94,7 @@ layout = [
                                 "padding": "0 12px"}),
                         html.Th("Interpretation", style={
                                 "padding": "0 12px"}),
-                    ]),
+                    ], style={**config.toprule, **config.midrule}),
                     html.Tr([
                         html.Td("η", style={
                                 "padding": "0 12px"}),
@@ -143,9 +143,30 @@ layout = [
                             "amplified relative to positive ones"),
                             style={"padding": "0 12px"},),
                     ]),
+                    html.Tr([
+                        html.Td("λ_C", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0,1]", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Controllability learning rate: speed at which "
+                            "perceived controllability declines across "
+                            "trials in the uncontrollable block"),
+                            style={"padding": "0 12px"},),
+                    ]),
+                    html.Tr([
+                        html.Td("midpoint", style={
+                                "padding": "0 12px"}),
+                        html.Td("[100,200]", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Trial number at which C reaches 50% "
+                            "(inflection point of the decay)"),
+                            style={"padding": "0 12px"},),
+                    ],
+                        style=config.bottomrule),
                 ],
-                style={"borderCollapse": "separate",
-                       "borderSpacing": "0 6px"},
+                style=config.table_style,
             )
         ], style={"paddingBottom": "20px"}),
         html.Div([
