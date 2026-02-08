@@ -15,6 +15,17 @@ import config
 dash.register_page(
     __name__, path="/simulation4", name="Simulation 4")
 
+description = """
+In Simulation 4, we introduced sadness as a negative emotion that emerges when
+outcomes are perceived as uncontrollable. We examine how anger/frustration and
+sadness vary as a function of perceived controllability. Using the same task
+structure as in Simulation 3, controllability is high in the first block and
+then declines in the second block. This decline follows a logistic function,
+allowing the researcher to tune both the midpoint and the rate of decay. The
+logistic form is chosen for pragmatic demonstration purposes and is not meant
+to imply a specific psychological inference mechanism."
+"""
+
 meta_df = pd.read_parquet(
     os.path.join(
         config.DATA_DIR,
@@ -70,20 +81,7 @@ layout = [
     html.Div([
         html.Div([
             html.P(
-                children=(
-                    "In simulation 4, we introduced sadness as a negative "
-                    "emotion in situations perceived as uncontrollable. "
-                    "Here, we show how anger/frustration and sadness depend "
-                    "on the controllability C. We chose the same paradigm "
-                    "as in simulation 3, but we modulate C such that it is "
-                    "high in the first block and then declines logistically "
-                    "in the second block. The midpoint and the rate of decay "
-                    "can be tuned by the researcher, to investigate how the "
-                    "emotions behave in response. "
-                    "The choice of a logistic decay is purely a pragmatic one "
-                    "for demonstration purposes; we do not make strong claims "
-                    "about how C is inferred in reality. "
-                )
+                children=description
             ),
             html.Table(
                 [

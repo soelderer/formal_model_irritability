@@ -8,6 +8,19 @@ import os
 
 dash.register_page(__name__, path="/simulation1", name="Simulation 1")
 
+description = """
+Simulation 1 illustrates a minimal model of irritability using a single agent
+that can act either friendly or aggressively. The agent experiences one
+unexpected nonreward, followed by a sequence of neutral outcomes, allowing us
+to isolate the emotional impact of a single frustrating event.
+Anger/frustration is elicited by this event and then gradually decays over time
+in the absence of further negative feedback. Importantly, the tendency to act
+aggressively is directly modulated by the current level of anger, leading to a
+temporary increase in aggressive behavior. This setup captures the clinically
+relevant idea that irritability involves a prolonged and disproportionate
+response to an isolated frustration.
+"""
+
 meta_df = pd.read_parquet(
     os.path.join(
         config.DATA_DIR,
@@ -24,18 +37,55 @@ layout = [
             style={"textAlign": "center"}),
     html.Div([
         html.Div([
-            html.P(children="In simulation 1, we did...")
-        ]),
+            html.P(children=description),
+            html.Table(
+                [
+                    html.Tr(
+                        [
+                            html.Th("Parameter", style={"padding": "0 12px"}),
+                            html.Th("Range", style={"padding": "0 12px"}),
+                            html.Th("Interpretation", style={
+                                    "padding": "0 12px"}),
+                        ],
+                        style={**config.toprule, **config.midrule},
+                    ),
+                    html.Tr(
+                        [
+                            html.Td("θ_A_w1", style={"padding": "0 12px"}),
+                            html.Td("ℝ", style={"padding": "0 12px"}),
+                            html.Td(
+                                "Reactive aggression gain: logit-linear scaling of aggressive behavior as a function of current anger/frustration",
+                                style={"padding": "0 12px"},
+                            ),
+                        ]
+                    ),
+                    html.Tr(
+                        [
+                            html.Td("C", style={"padding": "0 12px"}),
+                            html.Td("[0, 1]", style={"padding": "0 12px"}),
+                            html.Td(
+                                "Perceived controllability of the environment",
+                                style={"padding": "0 12px"},
+                            ),
+                        ],
+                        style=config.bottomrule,
+                    ),
+                ],
+                style=config.table_style,
+            )
+        ], style={"paddingBottom": "20px"}),
         html.Div([
             html.Div([
-                html.Label("theta_A_w1", style={"textAlign": "center"}),
+                html.Label("theta_A_w1", style={
+                    "textAlign": "center"}),
                 dcc.Slider(
                     min=min(theta_vals),
                     max=max(theta_vals),
                     step=None,
                     value=theta_vals[0],
                     marks={int(v): "" for v in theta_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
+                    tooltip={"always_visible": True,
+                             "placement": "bottom"},
                     updatemode="drag",
                     dots=False,
                     id="sim1-theta_A_w1-slider",
@@ -53,7 +103,8 @@ layout = [
                     dots=False,
                     value=C_vals[-1],
                     marks={float(v): "" for v in C_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
+                    tooltip={"always_visible": True,
+                             "placement": "bottom"},
                     updatemode="drag",
                     id="sim1-C-slider",
                     persistence=True,

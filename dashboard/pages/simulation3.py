@@ -14,6 +14,18 @@ import config
 
 dash.register_page(__name__, path="/simulation3", name="Simulation 3")
 
+description = """
+Simulation 3 builds on Simulation 2 by extending the affective input beyond
+expectation violations. In addition to unexpected outcomes, absolute rewards
+and losses directly influence emotional responses. We further introduce a
+negativity bias, such that negative outcomes have a stronger emotional impact
+than equally sized positive outcomes. This captures the clinically observed
+asymmetry in how patients respond to setbacks versus successes. Together, these
+additions allow the model to better reflect persistent irritability in the face
+of repeated negative feedback.
+"""
+
+
 meta_df = pd.read_parquet(
     os.path.join(
         config.DATA_DIR,
@@ -64,13 +76,21 @@ layout = [
             style={"textAlign": "center"}),
     html.Div([
         html.Div([
-            html.P(children="Simulation 3 is similar to simulation 2. But we introduced a negativity bias and additionally incorporated absolute rewards."),
+            html.P(children=description),
             html.Table(
                 [
                     html.Tr([
                         html.Th("Parameter", style={"padding": "0 12px"}),
                         html.Th("Range", style={"padding": "0 12px"}),
                         html.Th("Interpretation", style={"padding": "0 12px"}),
+                    ], style={**config.toprule, **config.midrule}),
+                    html.Tr([
+                        html.Td("C", style={"padding": "0 12px"}),
+                        html.Td("[0, 1]", style={"padding": "0 12px"}),
+                        html.Td(
+                            "Perceived controllability of the environment",
+                            style={"padding": "0 12px"},
+                        ),
                     ]),
                     html.Tr([
                         html.Td("η", style={"padding": "0 12px"}),
@@ -105,9 +125,9 @@ layout = [
                             "Negativity bias: negative affective inputs are amplified relative to positive ones",
                             style={"padding": "0 12px"},
                         ),
-                    ]),
+                    ], style=config.bottomrule),
                 ],
-                style={"borderCollapse": "separate", "borderSpacing": "0 6px"},
+                style=config.table_style,
             )
         ], style={"paddingBottom": "20px"}),
         html.Div([

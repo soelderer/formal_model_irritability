@@ -14,6 +14,18 @@ import config
 
 dash.register_page(__name__, path="/simulation2", name="Simulation 2")
 
+description = """
+Simulation 2 models a frustration-induction task in which participants learn
+whether their actions are rewarded over time. In an initial block, rewards are
+delivered almost consistently, leading to a strong expectation that the task is
+controllable and rewarding. In a subsequent block, outcomes are systematically
+worse despite continued effort, mimicking rigged feedback commonly used to
+elicit frustration. Agents gradually update their expectations based on
+experienced outcomes, capturing how perceived task value declines when
+expectations are violated. Frustration/anger is modeled as accumulating over
+repeated negative surprises."""
+
+
 meta_df = pd.read_parquet(
     os.path.join(
         config.DATA_DIR,
@@ -62,14 +74,23 @@ layout = [
             style={"textAlign": "center"}),
     html.Div([
         html.Div([
-            html.P(children="In simulation 2, we did..."),
+            html.P(children=description),
             html.Table(
                 [
                     html.Tr([
                         html.Th("Parameter", style={"padding": "0 12px"}),
                         html.Th("Range", style={"padding": "0 12px"}),
                         html.Th("Interpretation", style={"padding": "0 12px"}),
-                    ]),
+                    ], style={**config.toprule, **config.midrule}),
+                    html.Tr(
+                        [
+                            html.Td("C", style={"padding": "0 12px"}),
+                            html.Td("[0, 1]", style={"padding": "0 12px"}),
+                            html.Td(
+                                "Perceived controllability of the environment",
+                                style={"padding": "0 12px"},
+                            ),
+                        ]),
                     html.Tr([
                         html.Td("η", style={"padding": "0 12px"}),
                         html.Td("[0, 1]", style={"padding": "0 12px"}),
@@ -87,9 +108,9 @@ layout = [
                         html.Td("[0, 1]", style={"padding": "0 12px"}),
                         html.Td("Affective inertia: higher values → slower emotion updates", style={
                                 "padding": "0 12px"}),
-                    ]),
+                    ], style=config.bottomrule),
                 ],
-                style={"borderCollapse": "separate", "borderSpacing": "0 6px"},
+                style=config.table_style,
             )
         ], style={"paddingBottom": "20px"}),
         html.Div([
