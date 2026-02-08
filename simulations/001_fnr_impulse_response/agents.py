@@ -85,7 +85,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
                 f"lambda_A must be between 0 and 1, got {lambda_A}"
             )
 
-
         self._variables = {
             "V": V,
             "M_A": M_A,
@@ -144,6 +143,11 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         self.act(action)
 
     def choose_action(self):
+        probs = np.array([
+            self._variables[action.prob_name]
+            for action in sorted(self.Action, key=lambda a: a.value)
+        ])
+
         # Sample action from a multinomial distribution with the calculated
         # probabilities
         action_choice = self.Action(self.random.choice(len(probs), p=probs))
