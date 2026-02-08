@@ -17,10 +17,8 @@ class IrritabilityModel(mesa.Model):
         V=None,             # estimated value of the current state
         M_A=None,           # current anger/frustration
         theta_N_w0=None,
-        theta_N_w1=None,
         theta_N=None,       # current tendency for neutral behavior (logits)
         theta_F_w0=None,
-        theta_F_w1=None,
         theta_F=None,       # current tendency for friendly behavior (logits)
         theta_A_w0=None,
         theta_A_w1=None,
@@ -68,10 +66,8 @@ class IrritabilityModel(mesa.Model):
             V=V,
             M_A=M_A,
             theta_N_w0=theta_N_w0,
-            theta_N_w1=theta_N_w1,
             theta_N=theta_N,
             theta_F_w0=theta_F_w0,
-            theta_F_w1=theta_F_w1,
             theta_F=theta_F,
             theta_A_w0=theta_A_w0,
             theta_A_w1=theta_A_w1,

@@ -24,10 +24,8 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         "V",             # estimated value of the current state
         "M_A",           # current anger/frustration
         "theta_N_w0",
-        "theta_N_w1",
         "theta_N",       # current tendency for neutral behavior (logits)
         "theta_F_w0",
-        "theta_F_w1",
         "theta_F",       # current tendency for friendly behavior (logits)
         "theta_A_w0",
         "theta_A_w1",
@@ -50,10 +48,8 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         V: Optional[RealNumber]=None,
         M_A: Optional[RealNumber]=None,
         theta_N_w0: Optional[RealNumber]=None,
-        theta_N_w1: Optional[RealNumber]=None,
         theta_N: Optional[RealNumber]=None,
         theta_F_w0: Optional[RealNumber]=None,
-        theta_F_w1: Optional[RealNumber]=None,
         theta_F: Optional[RealNumber]=None,
         theta_A_w0: Optional[RealNumber]=None,
         theta_A_w1: Optional[RealNumber]=None,
@@ -71,6 +67,14 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
         # Check invariants
 
+        if theta_N or theta_A or theta_F or p_N or p_A or p_F or a or r or rpe:
+            raise ValueError(
+                (
+                    "Model-implied variables (theta_N, theta_A, theta_F, p_N, "
+                    "p_A, p_F, a, r, rpe) must be None in the constructor."
+                )
+            )
+
         # C must be in [0,1]
         if C is not None and not (0 <= C <= 1):
             raise ValueError(f"C must be between 0 and 1, got {C}")
@@ -81,51 +85,17 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
                 f"lambda_A must be between 0 and 1, got {lambda_A}"
             )
 
-        # Check theta_N_w0 equals theta_N
-        if theta_N_w0 is not None and theta_N is not None:
-            if theta_N_w0 != theta_N:
-                raise ValueError(
-                    f"theta_N_w0 ({theta_N_w0}) must equal theta_N ({theta_N})"
-                )
-
-        # Check theta_F_w0 equals theta_F
-        if theta_F_w0 is not None and theta_F is not None:
-            if theta_F_w0 != theta_F:
-                raise ValueError(
-                    f"theta_F_w0 ({theta_F_w0}) must equal theta_F ({theta_F})"
-                )
-
-        # Check theta_A equals theta_A_w0 + theta_A_w1 * M_A
-        if (
-            theta_A_w0 is not None
-            and theta_A_w1 is not None
-            and theta_A is not None
-            and M_A is not None
-        ):
-            expected_theta_A = theta_A_w0 + theta_A_w1 * M_A
-
-            if theta_A != expected_theta_A:
-                msg = (
-                    f"theta_A ({theta_A}) must equal "
-                    f"theta_A_w0 ({theta_A_w0}) + "
-                    f"theta_A_w1 ({theta_A_w1}) * M_A ({M_A}) = "
-                    f"{expected_theta_A}"
-                )
-                raise ValueError(msg)
-
 
         self._variables = {
             "V": V,
             "M_A": M_A,
             "theta_N_w0": theta_N_w0,
-            "theta_N_w1": theta_N_w1,
-            "theta_N": theta_N,
             "theta_F_w0": theta_F_w0,
-            "theta_F_w1": theta_F_w1,
-            "theta_F": theta_F,
             "theta_A_w0": theta_A_w0,
             "theta_A_w1": theta_A_w1,
+            "theta_N": theta_N,
             "theta_A": theta_A,
+            "theta_F": theta_F,
             "p_N": p_N,
             "p_F": p_F,
             "p_A": p_A,
@@ -135,6 +105,8 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             "lambda_A": lambda_A,
             "C": C
         }
+
+        self.calculate_action_tendencies()
 
         self._variables["neutral_counter"] = 0
         self._variables["friendly_counter"] = 0
@@ -147,6 +119,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         print(self._variables)
 
     def calculate_action_tendencies(self):
+        # Calculate logits
         self._variables["theta_N"] = self._variables["theta_N_w0"]
 
         self._variables["theta_F"] = self._variables["theta_F_w0"]
@@ -155,13 +128,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             "theta_A_w0"] + self._variables[
                 "theta_A_w1"] * self._variables["M_A"]
 
-    def choose_action_and_act(self):
-        action = self.choose_action()
-        self._variables["a"] = action.name
-        self.act(action)
-
-    def choose_action(self):
-        # Access the "theta_F" etc.
+        # Calculate probabilities
         logits = [self._variables[action.theta_name]
                   for action in sorted(self.Action, key=lambda a: a.value)]
 
@@ -171,6 +138,12 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         for action in sorted(self.Action, key=lambda a: a.value):
             self._variables[action.prob_name] = probs[action.value]
 
+    def choose_action_and_act(self):
+        action = self.choose_action()
+        self._variables["a"] = action.name
+        self.act(action)
+
+    def choose_action(self):
         # Sample action from a multinomial distribution with the calculated
         # probabilities
         action_choice = self.Action(self.random.choice(len(probs), p=probs))
