@@ -102,7 +102,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
                 "block_nr"]
             )
 
-    def update_emotions_and_learn(self):
+    def update_emotions(self):
         rpe = self._variables["rpe"]
         M_A = self._variables["M_A"]
         lambda_A = self._variables["lambda_A"]
@@ -111,9 +111,13 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         # recursive emotion update rule
         self._variables["M_A"] = M_A + (1-lambda_A) * (C*rpe-M_A)
 
-        # value learning
+    def learn_state_value(self):
         self._variables["V"] = self._variables["V"] + self._variables[
             "eta"] * self._variables["rpe"]
+
+    def update_emotions_and_learn(self):
+        self.update_emotions()
+        self.learn_state_value()
 
 
 if __name__ == "__main__":
