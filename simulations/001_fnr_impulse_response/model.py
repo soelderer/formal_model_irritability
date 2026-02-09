@@ -13,7 +13,7 @@ class IrritabilityModel(mesa.Model):
 
     def __init__(
         self,
-        seed,
+        seed: int,
         V: RealNumber,             # estimated value of the current state
         M_A: RealNumber,           # current anger/frustration
         theta_N_w0: RealNumber,
