@@ -4,16 +4,6 @@ from agents import IrritabilityAgent
 import mesa
 import numpy as np
 
-#     def __init__(
-#         self,
-#         model: mesa.Model,
-#         V: RealNumber,
-#         M_A: RealNumber,
-#         lambda_A: RealNumber,
-#         C: RealNumber,
-#         eta: RealNumber,
-#         gamma: RealNumber
-
 def test_agent_initialization_valid():
     mock_model = Mock()
 
@@ -123,6 +113,84 @@ def test_get_reward_block_3_raises():
 
     with pytest.raises(ValueError):
         agent.get_reward()
+
+def test_act_block_1():
+    mock_model = Mock()
+
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=1,
+        M_A=1,
+        lambda_A=0.6,
+        C=0.8,
+        eta=0.1,
+        gamma=0.4
+    )
+    agent._variables["block_nr"] = 1
+    agent._variables["trial_nr"] = 1
+
+    with patch.object(agent, "get_reward", return_value=0.5):
+        agent.act()
+
+        # rpe = r + gamma * V - V = 0.5 + 0.4 * 1 - 1
+        assert agent._variables["r"] == pytest.approx(0.5)
+        assert agent._variables["rpe"] == pytest.approx(-0.1)
+
+        assert agent._variables["block_nr"] == 1
+        assert agent._variables["trial_nr"] == 2
+
+def test_act_block_1_trial_99():
+    mock_model = Mock()
+
+    agent = IrritabilityAgent(
+        model=mock_model,
+        V=1,
+        M_A=1,
+        lambda_A=0.6,
+        C=0.8,
+        eta=0.1,
+        gamma=0.4
+    )
+    agent._variables["block_nr"] = 1
+    agent._variables["trial_nr"] = 99
+
+    with patch.object(agent, "get_reward", return_value=0.5):
+        agent.act()
+
+        # rpe = r + gamma * V - V = 0.5 + 0.4 * 1 - 1
+        assert agent._variables["r"] == pytest.approx(0.5)
+        assert agent._variables["rpe"] == pytest.approx(-0.1)
+
+        assert agent._variables["block_nr"] == 2
+        assert agent._variables["trial_nr"] == 100
+
+@pytest.mark.parametrize(
+    "V, r, gamma, expected_rpe",
+    [
+        (1.0, 0.5, 0.4, -0.1),
+        (1.0, 0.5, 0.0, -0.5),
+        (1.0, 0.5, 1.0, 0.5),
+        (0.0, 0.5, 0.4, 0.5),
+        (1.0, -0.5, 0.4, -1.1),
+    ],
+)
+def test_act_rpe_parametrized(V, r, gamma, expected_rpe):
+    agent = IrritabilityAgent(
+        model=Mock(),
+        V=V,
+        M_A=0.0,
+        lambda_A=0.5,
+        C=1.0,
+        eta=0.1,
+        gamma=gamma
+    )
+    agent._variables["block_nr"] = 1
+    agent._variables["trial_nr"] = 1
+
+    with patch.object(agent, "get_reward", return_value=r):
+        agent.act()
+
+        assert agent._variables["rpe"] == pytest.approx(expected_rpe)
 
 def make_agent_for_emotions(rpe=0.0, M_A=0.0, lambda_A=0.5, C=1.0,
                             eta=1.0, gamma=1.0, V=0):
