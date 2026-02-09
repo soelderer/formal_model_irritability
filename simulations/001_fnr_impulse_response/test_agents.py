@@ -12,18 +12,9 @@ def test_agent_initialization_no_anger_valid():
         V=0.5,
         M_A=0,
         theta_N_w0=3,
-        theta_N=None,
         theta_F_w0=-10,
-        theta_F=None,
         theta_A_w0=9,
         theta_A_w1=10,
-        theta_A=None,
-        p_N=None,
-        p_F=None,
-        p_A=None,
-        a=None,
-        r=None,
-        rpe=None,
         lambda_A=0.5,
         C=1.0
     )
@@ -57,8 +48,19 @@ def test_agent_initialization_no_anger_valid():
     assert agent._variables["friendly_counter"] == 0
     assert agent._variables["aggressive_counter"] == 0
 
+BASE_KWARGS = {
+    "V": 0,
+    "M_A": 0,
+    "theta_N_w0": 0,
+    "theta_A_w0": 0,
+    "theta_F_w0": 0,
+    "theta_A_w1": 0,
+    "C": 0,
+    "lambda_A": 0
+}
+
 @pytest.mark.parametrize(
-    "kwargs",
+    "override",
     [
         {"C": -0.1},
         {"C": 1.1},
@@ -66,7 +68,9 @@ def test_agent_initialization_no_anger_valid():
         {"lambda_A": 2.0},
     ],
 )
-def test_probability_like_parameters_out_of_bounds(kwargs):
+def test_probability_like_parameters_out_of_bounds(override):
+    kwargs = BASE_KWARGS | override
+
     with pytest.raises(ValueError):
         IrritabilityAgent(model=Mock(), **kwargs)
 
@@ -80,6 +84,9 @@ def test_calculate_action_tendencies_no_anger():
         theta_F_w0=-10,
         theta_A_w0=9,
         theta_A_w1=10,  # is irrelevant here
+        lambda_A=1,
+        C=1,
+        V=1
     )
 
     # Test softmax probabilities with appropriate tolerance
@@ -100,6 +107,9 @@ def test_calculate_action_tendencies_anger():
         theta_F_w0=-2,
         theta_A_w0=2,
         theta_A_w1=-2,
+        lambda_A=1,
+        C=1,
+        V=1
     )
 
     # Test softmax probabilities with appropriate tolerance
@@ -121,6 +131,8 @@ def test_choose_action_returns_enum():
         theta_N_w0=0,
         theta_F_w0=0,
         theta_A_w0=0, theta_A_w1=0,
+        lambda_A=1,
+        C=1,
     )
 
     # Fake probabilities
@@ -153,6 +165,8 @@ def test_get_reward_step_1():
         theta_N_w0=0,
         theta_F_w0=0,
         theta_A_w0=0, theta_A_w1=0,
+        lambda_A=1,
+        C=1,
     )
     agent.model.steps = 1
 
@@ -175,6 +189,8 @@ def test_get_reward_step_2():
         theta_N_w0=0,
         theta_F_w0=0,
         theta_A_w0=0, theta_A_w1=0,
+        lambda_A=1,
+        C=1,
     )
     agent.model.steps = 2
 
@@ -197,6 +213,8 @@ def test_act_neutral_step_1():
         theta_N_w0=0,
         theta_F_w0=0,
         theta_A_w0=0, theta_A_w1=0,
+        lambda_A=1,
+        C=1,
     )
     agent.model.steps = 1
 
@@ -219,6 +237,8 @@ def test_act_aggressive_step_1():
         theta_N_w0=0,
         theta_F_w0=0,
         theta_A_w0=0, theta_A_w1=0,
+        lambda_A=1,
+        C=1,
     )
     agent.model.steps = 1
 
@@ -244,7 +264,8 @@ def make_agent_for_emotions(rpe=0.0, M_A=0.0, lambda_A=0.5, C=1.0,
         theta_A_w0=theta_A_w0,
         theta_A_w1=theta_A_w1,
         theta_F_w0=theta_F_w0,
-        theta_N_w0=theta_N_w0
+        theta_N_w0=theta_N_w0,
+        V=0
     )
     agent._variables["rpe"] = rpe
     return agent

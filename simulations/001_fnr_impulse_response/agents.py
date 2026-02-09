@@ -45,35 +45,18 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     def __init__(
         self,
         model: mesa.Model,
-        V: Optional[RealNumber]=None,
-        M_A: Optional[RealNumber]=None,
-        theta_N_w0: Optional[RealNumber]=None,
-        theta_N: Optional[RealNumber]=None,
-        theta_F_w0: Optional[RealNumber]=None,
-        theta_F: Optional[RealNumber]=None,
-        theta_A_w0: Optional[RealNumber]=None,
-        theta_A_w1: Optional[RealNumber]=None,
-        theta_A: Optional[RealNumber]=None,
-        p_N: Optional[RealNumber]=None,
-        p_F: Optional[RealNumber]=None,
-        p_A: Optional[RealNumber]=None,
-        a: Optional[str]=None,
-        r: Optional[RealNumber]=None,
-        rpe: Optional[RealNumber]=None,
-        lambda_A: Optional[RealNumber]=None,
-        C: Optional[RealNumber]=None
+        V: RealNumber,
+        M_A: RealNumber,
+        theta_N_w0: RealNumber,
+        theta_F_w0: RealNumber,
+        theta_A_w0: RealNumber,
+        theta_A_w1: RealNumber,
+        lambda_A: RealNumber,
+        C: RealNumber
     ):
         super().__init__(model)
 
         # Check invariants
-
-        if theta_N or theta_A or theta_F or p_N or p_A or p_F or a or r or rpe:
-            raise ValueError(
-                (
-                    "Model-implied variables (theta_N, theta_A, theta_F, p_N, "
-                    "p_A, p_F, a, r, rpe) must be None in the constructor."
-                )
-            )
 
         # C must be in [0,1]
         if C is not None and not (0 <= C <= 1):
@@ -92,15 +75,15 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             "theta_F_w0": theta_F_w0,
             "theta_A_w0": theta_A_w0,
             "theta_A_w1": theta_A_w1,
-            "theta_N": theta_N,
-            "theta_A": theta_A,
-            "theta_F": theta_F,
-            "p_N": p_N,
-            "p_F": p_F,
-            "p_A": p_A,
-            "a": a,
-            "r": r,
-            "rpe": rpe,
+            "theta_N": None,
+            "theta_A": None,
+            "theta_F": None,
+            "p_N": None,
+            "p_F": None,
+            "p_A": None,
+            "a": None,
+            "r": None,
+            "rpe": None,
             "lambda_A": lambda_A,
             "C": C
         }
