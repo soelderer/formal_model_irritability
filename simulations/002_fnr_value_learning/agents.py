@@ -1,8 +1,10 @@
 import mesa  # agent-based model package
-from typing import Dict
+import numpy as np
+from typing import Dict, Optional, Union
 from scipy.special import softmax
 from enum import Enum
 
+RealNumber = Union[float, np.floating]
 
 class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     _variable_names = [
@@ -21,34 +23,45 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
     def __init__(
         self,
-        model,
-        V=None,
-        M_A=None,
-        r=None,
-        rpe=None,
-        lambda_A=None,
-        C=None,
-        eta=None,
-        gamma=None
+        model: mesa.Model,
+        V: RealNumber,
+        M_A: RealNumber,
+        lambda_A: RealNumber,
+        C: RealNumber,
+        eta: RealNumber,
+        gamma: RealNumber
     ):
         super().__init__(model)
 
-        # TODO: check if init_variable.keys() match _variable_names
+        # Check invariants
 
-        # TODO: check for invariants here (e.g. some parameters must be
-        # in [0,1])
+        # C must be in [0,1]
+        if not (0 <= C <= 1):
+            raise ValueError(f"C must be between 0 and 1, got {C}")
 
-        # raise ValueError()
+        # lambda_A must be in [0,1]
+        if not (0 <= lambda_A <= 1):
+            raise ValueError(
+                f"lambda_A must be between 0 and 1, got {lambda_A}"
+            )
+
+        # eta must be in [0,1]
+        if not (0 <= eta <= 1):
+            raise ValueError(f"eta must be between 0 and 1, got {eta}")
+
+        # gamma must be in [0,1]
+        if not (0 <= gamma <= 1):
+            raise ValueError(f"gamma must be between 0 and 1, got {gamma}")
 
         self._variables = {
             "V": V,
             "M_A": M_A,
-            "r": r,
-            "rpe": rpe,
             "lambda_A": lambda_A,
             "C": C,
             "eta": eta,
             "gamma": gamma,
+            "r": None,
+            "rpe": None,
             "trial_nr": 1,
             "block_nr": 1
         }
