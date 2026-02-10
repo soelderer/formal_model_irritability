@@ -1,7 +1,8 @@
 import mesa  # agent-based model package
-from typing import Dict
-from scipy.special import softmax
-from enum import Enum
+from typing import Union
+import numpy as np
+
+RealNumber = Union[float, np.floating]
 
 
 class IrritabilityAgent(mesa.discrete_space.FixedAgent):
@@ -23,32 +24,49 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
     def __init__(
         self,
-        model,
-        V=None,
-        M_A=None,
-        r=None,
-        rpe=None,
-        lambda_A=None,
-        C=None,
-        eta=None,
-        gamma=None,
-        alpha=None,
-        kappa=None
+        model: mesa.Model,
+        V: RealNumber,
+        M_A: RealNumber,
+        lambda_A: RealNumber,
+        C: RealNumber,
+        eta: RealNumber,
+        gamma: RealNumber,
+        alpha: RealNumber,
+        kappa: RealNumber
     ):
         super().__init__(model)
 
-        # TODO: check if init_variable.keys() match _variable_names
+        # C must be in [0,1]
+        if not (0 <= C <= 1):
+            raise ValueError(f"C must be between 0 and 1, got {C}")
 
-        # TODO: check for invariants here (e.g. some parameters must be
-        # in [0,1])
+        # lambda_A must be in [0,1]
+        if not (0 <= lambda_A <= 1):
+            raise ValueError(
+                f"lambda_A must be between 0 and 1, got {lambda_A}"
+            )
 
-        # raise ValueError()
+        # eta must be in [0,1]
+        if not (0 <= eta <= 1):
+            raise ValueError(f"eta must be between 0 and 1, got {eta}")
+
+        # gamma must be in [0,1]
+        if not (0 <= gamma <= 1):
+            raise ValueError(f"gamma must be between 0 and 1, got {gamma}")
+
+        # alpha must be in [0,1]
+        if not (0 <= alpha <= 1):
+            raise ValueError(f"alpha must be between 0 and 1, got {alpha}")
+
+        # kappa must be in R+
+        if not (kappa >= 1):
+            raise ValueError(f"kappa must be >=1, got {kappa}")
 
         self._variables = {
             "V": V,
             "M_A": M_A,
-            "r": r,
-            "rpe": rpe,
+            "r": None,
+            "rpe": None,
             "lambda_A": lambda_A,
             "C": C,
             "eta": eta,
@@ -102,7 +120,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             else self._variables["kappa"] * affective_input
         )
 
-    def update_emotions_and_learn(self):
+    def update_emotions(self):
         r = self._variables["r"]
         rpe = self._variables["rpe"]
         M_A = self._variables["M_A"]
@@ -119,9 +137,14 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             * (C * affective_input - M_A)
         )
 
+    def learn_state_value(self):
         # Value learning
         self._variables["V"] = self._variables["V"] + self._variables[
             "eta"] * self._variables["rpe"]
+
+    def update_emotions_and_learn(self):
+        self.update_emotions()
+        self.learn_state_value()
 
 
 if __name__ == "__main__":
