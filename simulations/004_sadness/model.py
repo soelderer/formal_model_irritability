@@ -1,10 +1,12 @@
 import mesa  # agent-based model package
 import numpy as np
+from typing import Union
 import agents
 import importlib
 importlib.reload(agents)
 IrritabilityAgent = agents.IrritabilityAgent
-OrthogonalMooreGrid = mesa.discrete_space.OrthogonalMooreGrid
+
+RealNumber = Union[float, np.floating]
 
 
 class IrritabilityModel(mesa.Model):
@@ -12,26 +14,20 @@ class IrritabilityModel(mesa.Model):
 
     def __init__(
         self,
+        seed: int,
+        V: RealNumber,             # estimated value of the current state
+        M_A: RealNumber,           # current anger/frustration
+        M_S: RealNumber,           # current sadness
+        lambda_A: RealNumber,
+        lambda_C: RealNumber,
+        midpoint: int,
+        eta: RealNumber,
+        gamma: RealNumber,
+        alpha: RealNumber,
+        kappa: RealNumber,
         num_agents=1,
-        seed=None,
-        V=None,             # estimated value of the current state
-        M_A=None,           # current anger/frustration
-        M_S=None,           # current sadness
-        r=None,             # current reward
-        rpe=None,           # current reward prediction error
-        lambda_A=None,
-        lambda_C=None,
-        midpoint=None,
-        C=None,
-        eta=None,
-        gamma=None,
-        alpha=None,
-        kappa=None,
     ):
         super().__init__()
-
-        # TODO: check for invariants here (e.g. some parameters must be
-        # in [0,1])
 
         self.num_agents_ = num_agents
 
@@ -48,13 +44,6 @@ class IrritabilityModel(mesa.Model):
             }
         )
 
-        # We don't really need space now, so let's just line them up in a grid
-        self.grid = OrthogonalMooreGrid(
-            (num_agents, 1),
-            torus=True,
-            capacity=num_agents
-        )
-
         # Create agents
         IrritabilityAgent.create_agents(
             model=self,
@@ -62,12 +51,12 @@ class IrritabilityModel(mesa.Model):
             V=V,
             M_A=M_A,
             M_S=M_S,
-            r=r,
-            rpe=rpe,
+            r=None,
+            rpe=None,
             lambda_A=lambda_A,
             lambda_C=lambda_C,
             midpoint=midpoint,
-            C=C,
+            C=None,
             eta=eta,
             gamma=gamma,
             alpha=alpha,
@@ -80,13 +69,6 @@ class IrritabilityModel(mesa.Model):
         self.datacollector.collect(self)
 
         self.agents.shuffle_do("update_emotions_and_learn")
-
-    @staticmethod
-    def agent_portrayal(agent: IrritabilityAgent):
-        return mesa.visualization.AgentPortrayalStyle(
-            color="tab:orange",
-            size=50
-        )
 
 
 if __name__ == "__main__":
