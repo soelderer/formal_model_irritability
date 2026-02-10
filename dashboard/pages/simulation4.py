@@ -29,7 +29,7 @@ to imply a specific psychological inference mechanism."
 meta_df = pd.read_parquet(
     os.path.join(
         config.DATA_DIR,
-        "004_action_readiness",
+        "004_sadness",
         "meta_info.parquet"
     )
 )
@@ -37,13 +37,13 @@ meta_df = pd.read_parquet(
 files = glob.glob(
     os.path.join(
         config.DATA_DIR,
-        "004_action_readiness",
-        "004_action_readiness_*.parquet"
+        "004_sadness",
+        "004_sadness_*.parquet"
     )
 )
 
 # Determine the available iterations by filename
-# Files must follow this convention: 004_action_readiness_i.parquet
+# Files must follow this convention: 004_sadness_i.parquet
 n_iterations = 0
 iterations = []
 for f in files:
@@ -390,8 +390,8 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
         table = pq.read_table(
             os.path.join(
                 config.DATA_DIR,
-                "004_action_readiness",
-                "004_action_readiness_summary.parquet"
+                "004_sadness",
+                "004_sadness_summary.parquet"
             ),
             columns=cols_needed,
             filters=filters
@@ -556,8 +556,8 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
         table = pq.read_table(
             os.path.join(
                 config.DATA_DIR,
-                "004_action_readiness",
-                f"004_action_readiness_{selected_iteration}.parquet"
+                "004_sadness",
+                f"004_sadness_{selected_iteration}.parquet"
             ),
             columns=cols_needed,
             filters=filters
