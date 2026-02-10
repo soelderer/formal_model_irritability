@@ -1,10 +1,9 @@
 import mesa  # agent-based model package
 import numpy as np
-from typing import Dict, Optional, Union
-from scipy.special import softmax
-from enum import Enum
+from typing import Union
 
 RealNumber = Union[float, np.floating]
+
 
 class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     _variable_names = [

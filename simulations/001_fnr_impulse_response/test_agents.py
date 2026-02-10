@@ -4,6 +4,7 @@ from agents import IrritabilityAgent
 import mesa
 import numpy as np
 
+
 def test_agent_initialization_no_anger_valid():
     mock_model = Mock()
 
@@ -48,6 +49,7 @@ def test_agent_initialization_no_anger_valid():
     assert agent._variables["friendly_counter"] == 0
     assert agent._variables["aggressive_counter"] == 0
 
+
 BASE_KWARGS = {
     "V": 0,
     "M_A": 0,
@@ -58,6 +60,7 @@ BASE_KWARGS = {
     "C": 0,
     "lambda_A": 0
 }
+
 
 @pytest.mark.parametrize(
     "override",
@@ -73,6 +76,7 @@ def test_probability_like_parameters_out_of_bounds(override):
 
     with pytest.raises(ValueError):
         IrritabilityAgent(model=Mock(), **kwargs)
+
 
 def test_calculate_action_tendencies_no_anger():
     mock_model = Mock()
@@ -96,6 +100,7 @@ def test_calculate_action_tendencies_no_anger():
     assert agent._variables["p_N"] == pytest.approx(0.0024726, rel=1e-3)
     assert agent._variables["p_F"] == pytest.approx(0.0, abs=1e-8)
     assert agent._variables["p_A"] == pytest.approx(0.99753, rel=1e-3)
+
 
 def test_calculate_action_tendencies_anger():
     mock_model = Mock()
@@ -121,6 +126,7 @@ def test_calculate_action_tendencies_anger():
     assert agent._variables["p_N"] == pytest.approx(0.26845495, abs=1e-8)
     assert agent._variables["p_F"] == pytest.approx(0.00180884, abs=1e-8)
     assert agent._variables["p_A"] == pytest.approx(0.72973621, rel=1e-6)
+
 
 def test_choose_action_returns_enum():
     # Setup agent
@@ -156,6 +162,7 @@ def test_choose_action_returns_enum():
         assert called_args[0] == 3
         assert list(called_kwargs["p"]) == [0.1, 0.3, 0.6]
 
+
 def test_get_reward_step_1():
     # Setup agent
     mock_model = Mock()
@@ -179,6 +186,7 @@ def test_get_reward_step_1():
 
     reward = agent.get_reward(agent.Action.NEUTRAL)
     assert reward == -1
+
 
 def test_get_reward_step_2():
     # Setup agent
@@ -204,6 +212,7 @@ def test_get_reward_step_2():
     reward = agent.get_reward(agent.Action.NEUTRAL)
     assert reward == 0
 
+
 def test_act_neutral_step_1():
     # Setup agent
     mock_model = Mock()
@@ -226,6 +235,7 @@ def test_act_neutral_step_1():
     assert agent._variables["neutral_counter"] == 1
     assert agent._variables["friendly_counter"] == 0
     assert agent._variables["aggressive_counter"] == 0
+
 
 def test_act_aggressive_step_1():
     # Setup agent
@@ -251,6 +261,7 @@ def test_act_aggressive_step_1():
     assert agent._variables["friendly_counter"] == 0
     assert agent._variables["aggressive_counter"] == 1
 
+
 def make_agent_for_emotions(rpe=0.0, M_A=0.0, lambda_A=0.5, C=1.0,
                             theta_A_w0=0.0, theta_A_w1=0.0,
                             theta_N_w0=0.0, theta_F_w0=0.0):
@@ -270,12 +281,14 @@ def make_agent_for_emotions(rpe=0.0, M_A=0.0, lambda_A=0.5, C=1.0,
     agent._variables["rpe"] = rpe
     return agent
 
+
 def test_update_emotions_basic():
     agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.5, C=1.0)
     agent.update_emotions()
 
     # M_A_new = 1 + (1-0.5)*(1*2 - 1) = 1 + 0.5*(1) = 1.5
     assert agent._variables["M_A"] == pytest.approx(1.5)
+
 
 def test_update_emotions_lambda_zero():
     agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.0, C=1.0)
@@ -284,6 +297,7 @@ def test_update_emotions_lambda_zero():
     # M_A_new = 1 + (1-0)*(1*2 -1) = 1 + 1*(1) = 2
     assert agent._variables["M_A"] == pytest.approx(2.0)
 
+
 def test_update_emotions_lambda_one():
     agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=1.0, C=1.0)
     agent.update_emotions()
@@ -291,12 +305,14 @@ def test_update_emotions_lambda_one():
     # M_A_new = 1 + (1-1)*(1*2-1) = 1 + 0*(1) = 1
     assert agent._variables["M_A"] == pytest.approx(1.0)
 
+
 def test_update_emotions_zero_rpe():
     agent = make_agent_for_emotions(rpe=0.0, M_A=1.0, lambda_A=0.5, C=1.0)
     agent.update_emotions()
 
     # M_A_new = 1 + 0.5*(1*0 -1) = 1 + 0.5*(-1) = 0.5
     assert agent._variables["M_A"] == pytest.approx(0.5)
+
 
 def test_update_emotions_zero_C():
     agent = make_agent_for_emotions(rpe=2.0, M_A=1.0, lambda_A=0.5, C=0.0)
