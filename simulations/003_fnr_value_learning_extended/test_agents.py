@@ -351,3 +351,34 @@ def test_update_emotions_parametrized(
     agent.update_emotions()
 
     assert agent._variables["M_A"] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "V, rpe, eta, expected_V",
+    [
+        # No learning signal
+        (1.0, 0.0, 0.1, 1.0),
+
+        # No learning rate
+        (1.0, 2.0, 0.0, 1.0),
+
+        # Standard positive update
+        (1.0, 2.0, 0.1, 1.2),
+
+        # Negative prediction error
+        (1.0, -2.0, 0.1, 0.8),
+
+        # Negative value estimate
+        (-1.0, 2.0, 0.1, -0.8),
+
+        # Large learning rate (full correction)
+        (1.0, 2.0, 1.0, 3.0),
+
+        # Small learning rate
+        (1.0, 2.0, 1e-6, 1.000002),
+    ],
+)
+def test_learn_state_value_parametrized(V, rpe, eta, expected_V):
+    agent = make_agent_for_emotions(rpe=rpe, V=V, eta=eta)
+    agent.learn_state_value()
+    assert agent._variables["V"] == pytest.approx(expected_V)
