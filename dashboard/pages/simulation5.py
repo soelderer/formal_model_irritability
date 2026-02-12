@@ -1,0 +1,743 @@
+import dash
+from dash import html, dcc, callback, Output, Input
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import pandas as pd
+import pyarrow.parquet as pq
+import numpy as np
+import gc
+import glob
+import re
+import os
+import config
+
+dash.register_page(
+    __name__, path="/simulation5", name="Simulation 5")
+
+description = """
+In Simulation 5, we extend the previous setup by adding response vigor as a
+downstream consequence of emotional intensity. As before, sadness is introduced
+as a negative emotion that emerges when outcomes are perceived as
+uncontrollable. We examine how anger/frustration and sadness vary as a function
+of perceived controllability, and how these emotions in turn modulate the vigor
+with which actions are executed.
+
+Using the same task structure as in Simulation 4, controllability is high in
+the first block and then declines in the second block. This decline follows a
+logistic function, allowing the researcher to tune both the midpoint and the
+rate of decay. The logistic form is chosen for pragmatic demonstration purposes
+and is not meant to imply a specific psychological inference mechanism.
+
+Response vigor is modeled as a bounded control signal that increases with the
+intensity of emotionally salient motive states, reflecting urgency and resource
+mobilization for action execution. Importantly, vigor does not affect action
+selection or learning in this simulation, but only the dynamics and intensity
+of responding.
+"""
+
+meta_df = pd.read_parquet(
+    os.path.join(
+        config.DATA_DIR,
+        "005_response_vigor",
+        "meta_info.parquet"
+    )
+)
+
+files = glob.glob(
+    os.path.join(
+        config.DATA_DIR,
+        "005_response_vigor",
+        "005_response_vigor_*.parquet"
+    )
+)
+
+# Determine the available iterations by filename
+# Files must follow this convention: 005_response_vigor_i.parquet
+n_iterations = 0
+iterations = []
+for f in files:
+    match = re.search(
+        r"_(\d+)\.parquet$", f)
+
+    if match:
+        iterations += [
+            int(match.group(1))]
+
+if iterations:
+    n_iterations = len(
+        iterations)
+
+lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
+eta_vals = meta_df["eta_vals"].iloc[0]
+gamma_vals = meta_df["gamma_vals"].iloc[0]
+alpha_vals = meta_df["alpha_vals"].iloc[0]
+kappa_vals = meta_df["kappa_vals"].iloc[0]
+lambda_C_vals = meta_df["lambda_C_vals"].iloc[0]
+midpoint_vals = meta_df["midpoint_vals"].iloc[0]
+w_v_A_vals = meta_df["w_v_A_vals"].iloc[0]
+
+del meta_df
+gc.collect()
+
+# Dropdown options
+dropdown_options = [{"label": "Expected", "value": "expected"}] + [
+    {"label": f"Iteration {i}", "value": i} for i in iterations
+]
+
+
+layout = [
+    html.H1(children="Simulation 5",
+            style={"textAlign": "center"}),
+    html.Div([
+        html.Div([
+            html.P(
+                children=description
+            ),
+            html.Table(
+                [
+                    html.Tr([
+                        html.Th("Parameter", style={
+                                "padding": "0 12px"}),
+                        html.Th("Range", style={
+                                "padding": "0 12px"}),
+                        html.Th("Interpretation", style={
+                                "padding": "0 12px"}),
+                    ], style={**config.toprule, **config.midrule}),
+                    html.Tr([
+                        html.Td("η", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0, 1]", style={
+                                "padding": "0 12px"}),
+                        html.Td(
+                            ("Learning rate: how quickly value "
+                             "expectations update"),
+                            style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("γ", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0, 1]", style={
+                                "padding": "0 12px"}),
+                        html.Td(("Discount factor: weight given to "
+                                 "future rewards"),
+                                style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("λ_A", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0, 1]", style={
+                                "padding": "0 12px"}),
+                        html.Td(("Affective inertia: higher values → "
+                                 "slower emotion updates"),
+                                style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("α", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0, 1]", style={
+                                "padding": "0 12px"}),
+                        html.Td(("Relative weighting of prediction errors "
+                                 "versus absolute rewards as affective inputs "
+                                 "(1 ... only RPE)"),
+                                style={"padding": "0 12px"}),
+                    ]),
+                    html.Tr([
+                        html.Td("κ", style={
+                                "padding": "0 12px"}),
+                        html.Td("> 1", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Negativity bias: negative affective inputs are "
+                            "amplified relative to positive ones"),
+                            style={"padding": "0 12px"},),
+                    ]),
+                    html.Tr([
+                        html.Td("λ_C", style={
+                                "padding": "0 12px"}),
+                        html.Td("[0,1]", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Controllability learning rate: speed at which "
+                            "perceived controllability declines across "
+                            "trials in the uncontrollable block"),
+                            style={"padding": "0 12px"},),
+                    ]),
+                    html.Tr([
+                        html.Td("midpoint", style={
+                                "padding": "0 12px"}),
+                        html.Td("[100,200]", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Trial number at which C reaches 50% "
+                            "(inflection point of the decay)"),
+                            style={"padding": "0 12px"},),
+                    ]),
+                    html.Tr([
+                        html.Td("v_w_A", style={
+                                "padding": "0 12px"}),
+                        html.Td(">=0", style={
+                                "padding": "0 12px"}),
+                        html.Td((
+                            "Contribution of frustration/anger to "
+                            "response vigor"),
+                            style={"padding": "0 12px"},),
+                    ],
+                        style=config.bottomrule),
+                ],
+                style=config.table_style,
+            )
+        ], style={"paddingBottom": "20px"}),
+        html.Div([
+            html.Div([
+                html.Label("lambda_A", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        lambda_A_vals),
+                    max=max(
+                        lambda_A_vals),
+                    step=None,
+                    value=lambda_A_vals[0],
+                    marks={float(
+                        v): "" for v in lambda_A_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    dots=False,
+                    id="sim5-lambda_A-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("eta", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        eta_vals),
+                    max=max(
+                        eta_vals),
+                    step=None,
+                    dots=False,
+                    value=eta_vals[-1],
+                    marks={float(
+                        v): "" for v in eta_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-eta-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("gamma", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        gamma_vals),
+                    max=max(
+                        gamma_vals),
+                    step=None,
+                    dots=False,
+                    value=gamma_vals[-1],
+                    marks={float(
+                        v): "" for v in gamma_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-gamma-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("alpha", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        alpha_vals),
+                    max=max(
+                        alpha_vals),
+                    step=None,
+                    dots=False,
+                    value=alpha_vals[-1],
+                    marks={float(
+                        v): "" for v in alpha_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-alpha-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("kappa", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        kappa_vals),
+                    max=max(
+                        kappa_vals),
+                    step=None,
+                    dots=False,
+                    value=kappa_vals[-1],
+                    marks={float(
+                        v): "" for v in kappa_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-kappa-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("lambda_C", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        lambda_C_vals),
+                    max=max(
+                        lambda_C_vals),
+                    step=None,
+                    dots=False,
+                    value=lambda_C_vals[-1],
+                    marks={float(
+                        v): "" for v in lambda_C_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-lambda_C-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("midpoint", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        midpoint_vals),
+                    max=max(
+                        midpoint_vals),
+                    step=None,
+                    dots=False,
+                    value=midpoint_vals[-1],
+                    marks={float(
+                        v): "" for v in midpoint_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-midpoint-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+            html.Div([
+                html.Label("w_v_A", style={
+                           "textAlign": "center"}),
+                dcc.Slider(
+                    min=min(
+                        w_v_A_vals),
+                    max=max(
+                        w_v_A_vals),
+                    step=None,
+                    dots=False,
+                    value=w_v_A_vals[-1],
+                    marks={float(
+                        v): "" for v in w_v_A_vals},
+                    tooltip={
+                        "always_visible": True, "placement": "bottom"},
+                    updatemode="drag",
+                    id="sim5-w_v_A-slider",
+                    persistence=True,
+                ),
+            ], style={"width": "20%",
+                      "display": "inline-block",
+                      "padding": "0 10px"}),
+        ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
+        html.Div([
+            dcc.Dropdown(
+                id="sim5-iteration-selector",
+                options=dropdown_options,
+                value="expected",
+                clearable=False,
+                style={
+                    "width": "200px"},
+                persistence=True,
+            ),
+        ], style={"paddingTop": "20px"}),
+        html.Div([
+            dcc.Graph(
+                id="sim5-graph-content",
+                config={"responsive": True})
+        ], style={"width": "60%", "height": "80vh"})
+    ])
+]
+
+
+@callback(
+    Output(
+        "sim5-graph-content", "figure"),
+    Input(
+        "sim5-lambda_A-slider", "value"),
+    Input(
+        "sim5-eta-slider", "value"),
+    Input(
+        "sim5-gamma-slider", "value"),
+    Input(
+        "sim5-alpha-slider", "value"),
+    Input(
+        "sim5-kappa-slider", "value"),
+    Input(
+        "sim5-lambda_C-slider", "value"),
+    Input(
+        "sim5-midpoint-slider", "value"),
+    Input(
+        "sim5-w_v_A-slider", "value"),
+    Input(
+        "sim5-iteration-selector", "value"),
+)
+def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
+                 w_v_A, selected_iteration):
+    if selected_iteration == "expected":
+        filters = [
+            ("lambda_A",
+             "=", lambda_A),
+            ("eta",
+             "=", eta),
+            ("gamma",
+             "=", gamma),
+            ("alpha",
+             "=", alpha),
+            ("kappa",
+             "=", kappa),
+            ("lambda_C",
+             "=", lambda_C),
+            ("midpoint",
+             "=", midpoint),
+            ("w_v_A",
+             "=", w_v_A),
+        ]
+
+        # read only filtered rows and needed columns
+        cols_needed = ["Step", "V_mean", "V_std", "M_A_mean", "M_A_std",
+                       "M_S_mean", "M_S_std", "C", "v_mean", "v_std"]
+
+        table = pq.read_table(
+            os.path.join(
+                config.DATA_DIR,
+                "005_response_vigor",
+                "005_response_vigor_summary.parquet"
+            ),
+            columns=cols_needed,
+            filters=filters
+        )
+
+        dff = table.to_pandas(
+        ).sort_values("Step")
+
+        # shaded bounds
+        V_upper = dff["V_mean"] + dff["V_std"]
+        V_lower = dff["V_mean"] - dff["V_std"]
+        M_A_upper = dff["M_A_mean"] + dff["M_A_std"]
+        M_A_lower = dff["M_A_mean"] - dff["M_A_std"]
+        M_S_upper = dff["M_S_mean"] + dff["M_S_std"]
+        M_S_lower = dff["M_S_mean"] - dff["M_S_std"]
+        v_upper = dff["v_mean"] + dff["v_std"]
+        v_lower = dff["v_mean"] - dff["v_std"]
+
+        fig = make_subplots(
+            rows=3,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+        )
+
+        # --- V (top) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["V_mean"],
+                mode="lines",
+                name="Value of state",
+                line=dict(color="blue"),
+            ),
+            row=1,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([V_upper, V_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(0,0,255,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=1,
+            col=1,
+        )
+
+        fig.add_hline(y=0, row=1, col=1)
+
+        # --- Emotions (bottom: M_A + M_S, same axis) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["M_A_mean"],
+                mode="lines",
+                name="Anger/frustration",
+                line=dict(color="red"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([M_A_upper, M_A_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(255,0,0,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["M_S_mean"],
+                mode="lines",
+                name="Sadness",
+                line=dict(color="orange"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([M_S_upper, M_S_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(255,165,0,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=2,
+            col=1,
+        )
+
+        # --- C trace (bottom: emotions, no stderr) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["C"],
+                mode="lines",
+                name="C",
+                line=dict(color="green"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_hline(y=0, row=2, col=1)
+        fig.add_vline(x=100, line_dash="dash")
+
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
+        fig.update_yaxes(
+            title_text="Emotions",
+            range=[-2, 2],
+            row=2,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=2, col=1)
+
+        # --- Response vigor ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["v_mean"],
+                mode="lines",
+                name="Response vigor",
+                line=dict(color="orange"),
+            ),
+            row=3,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+                y=np.concatenate([v_upper, v_lower[::-1]]),
+                fill="toself",
+                fillcolor="rgba(255,165,0,0.2)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+            row=3,
+            col=1,
+        )
+
+        fig.update_yaxes(
+            title_text="Response vigor",
+            range=[0, 1],
+            row=3,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=3, col=1)
+
+        return fig
+
+    # Single model iteration
+    else:
+        filters = [
+            ("lambda_A",
+             "=", lambda_A),
+            ("eta",
+             "=", eta),
+            ("gamma",
+             "=", gamma),
+            ("alpha",
+             "=", alpha),
+            ("kappa",
+             "=", kappa),
+            ("lambda_C",
+             "=", lambda_C),
+            ("midpoint",
+             "=", midpoint),
+            ("w_v_A",
+             "=", w_v_A),
+        ]
+
+        cols_needed = [
+            "Step", "V", "M_A", "M_S", "C", "v"]
+
+        # read only filtered rows and selected columns
+        table = pq.read_table(
+            os.path.join(
+                config.DATA_DIR,
+                "005_response_vigor",
+                f"005_response_vigor_{selected_iteration}.parquet"
+            ),
+            columns=cols_needed,
+            filters=filters
+        )
+
+        # convert to pandas and sort
+        dff = table.to_pandas(
+        ).sort_values("Step")
+
+        fig = make_subplots(
+            rows=3,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+        )
+
+        # --- V (top, auto scale) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["V"],
+                mode="lines",
+                name="Value of state",
+                line=dict(color="blue"),
+            ),
+            row=1,
+            col=1,
+        )
+
+        fig.add_hline(y=0, row=1, col=1)
+
+        # --- Emotions (bottom: M_A + M_S, same axis) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["M_A"],
+                mode="lines",
+                name="Anger/frustration",
+                line=dict(color="red"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["M_S"],
+                mode="lines",
+                name="Sadness",
+                line=dict(color="orange"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        # --- C trace (bottom: emotions, no stderr) ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["C"],
+                mode="lines",
+                name="C",
+                line=dict(color="green"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_hline(y=0, row=2, col=1)
+        fig.add_vline(x=100, line_dash="dash")
+
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
+        fig.update_yaxes(
+            title_text="Emotions",
+            range=[-2, 2],
+            row=2,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=2, col=1)
+
+        # --- Response vigor ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["v"],
+                mode="lines",
+                name="Response vigor",
+                line=dict(color="orange"),
+            ),
+            row=3,
+            col=1,
+        )
+
+        fig.update_yaxes(
+            title_text="Response vigor",
+            range=[0, 1],
+            row=3,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=3, col=1)
+
+        return fig
