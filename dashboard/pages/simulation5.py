@@ -552,7 +552,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 x=dff["Step"],
                 y=dff["C"],
                 mode="lines",
-                name="C",
+                name="Controllability",
                 line=dict(color="green"),
             ),
             row=2,
@@ -578,7 +578,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 y=dff["v_mean"],
                 mode="lines",
                 name="Response vigor",
-                line=dict(color="orange"),
+                line=dict(color="magenta"),
             ),
             row=3,
             col=1,
@@ -589,8 +589,8 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
                 y=np.concatenate([v_upper, v_lower[::-1]]),
                 fill="toself",
-                fillcolor="rgba(255,165,0,0.2)",
-                line=dict(color="rgba(255,255,255,0)"),
+                fillcolor="rgba(255,0,255,0.2)",
+                line=dict(color="rgba(255,0,255,0)"),
                 hoverinfo="skip",
                 showlegend=False,
             ),
@@ -604,6 +604,9 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             row=3,
             col=1,
         )
+        fig.add_hline(y=0.5, row=3, col=1)
+        fig.add_vline(x=100, line_dash="dash")
+
         fig.update_xaxes(title_text="Step", row=3, col=1)
 
         return fig
@@ -700,7 +703,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 x=dff["Step"],
                 y=dff["C"],
                 mode="lines",
-                name="C",
+                name="Controllability",
                 line=dict(color="green"),
             ),
             row=2,
@@ -726,7 +729,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
                 y=dff["v"],
                 mode="lines",
                 name="Response vigor",
-                line=dict(color="orange"),
+                line=dict(color="magenta"),
             ),
             row=3,
             col=1,
@@ -738,6 +741,10 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             row=3,
             col=1,
         )
+
+        fig.add_hline(y=0.5, row=3, col=1)
+        fig.add_vline(x=100, line_dash="dash")
+
         fig.update_xaxes(title_text="Step", row=3, col=1)
 
         return fig
