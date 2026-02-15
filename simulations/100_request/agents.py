@@ -22,6 +22,9 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             object.__setattr__(obj, "prob_name", prob_name)
             return obj
 
+        def __str__(self):
+            return self.name
+
     class State(Enum):
         GOAL_NOT_REQUESTED = auto()
         GOAL_DENIED = auto()
@@ -191,11 +194,10 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             self._variables[action.prob_name] = probs[action.value]
 
     def choose_action_and_act(self):
+        self.calculate_action_tendencies()
+
         action = self.choose_action()
         self._variables["a"] = action.name
-
-        print(f"State: {self._variables["S"]}")
-        print(f"Chose action: {action.name}")
 
         self.act(action)
 
@@ -224,7 +226,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         elif action is self.Action.REQUEST_AGGRESSIVELY:
             self._variables["aggressive_counter"] += 1
 
-        print(f"act {action.name}: get_state_value()")
         V_old = self.get_state_value()
 
         self._S_new, reward = self._environment.act(
@@ -232,9 +233,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             action,
             v
         )
-
-        print(f"self._S_new: {self._S_new}")
-        print(f"reward: {reward}")
 
         rpe = reward + self._variables["gamma"] * V_old - V_old
 
@@ -244,8 +242,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         return (reward, rpe)
 
     def get_state_value(self) -> RealNumber:
-        print(f"Getting state value of {self._variables["S"]}...")
-
         match self._variables["S"]:
             case self.State.GOAL_NOT_REQUESTED:
                 return self._variables["V_NR"]
@@ -316,8 +312,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         )
 
     def learn_state_value(self):
-        print("learning state value...")
-
         V = self.get_state_value()
 
         V += self._variables["eta"] * self._variables["rpe"]
@@ -334,6 +328,12 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     def update_emotions_and_learn(self):
         self.update_emotions()
         self.learn_state_value()
+
+    def clear_variables_for_terminal_state(self):
+        self._variables["a"] = None
+        self._variables["v"] = None
+        self._variables["r"] = None
+        self._variables["rpe"] = None
 
 
 if __name__ == "__main__":

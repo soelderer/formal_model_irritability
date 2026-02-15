@@ -29,18 +29,18 @@ class IrritabilityModel(mesa.Model):
         # pairs: (S_old, action) -> (p, S_new, r)
         transition_table = {
             (State.GOAL_NOT_REQUESTED, Action.REQUEST_AGGRESSIVELY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_NOT_REQUESTED, Action.REQUEST_FRIENDLY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_NOT_REQUESTED, Action.REQUEST_NEUTRALLY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_NOT_REQUESTED, Action.DO_STH_ELSE): [
@@ -49,18 +49,18 @@ class IrritabilityModel(mesa.Model):
             ],
 
             (State.GOAL_DENIED, Action.REQUEST_AGGRESSIVELY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_DENIED, Action.REQUEST_FRIENDLY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_DENIED, Action.REQUEST_NEUTRALLY): [
-                (0.2, State.GOAL_GRANTED, +1.0),
-                (0.8, State.GOAL_DENIED, 0.0),
+                (0.1, State.GOAL_GRANTED, +1.0),
+                (0.9, State.GOAL_DENIED, 0.0),
             ],
 
             (State.GOAL_DENIED, Action.DO_STH_ELSE): [
@@ -139,8 +139,6 @@ class IrritabilityModel(mesa.Model):
             }
         )
 
-        print(self.datacollector.agent_reporters)
-
         # Create agents
         IrritabilityAgent.create_agents(
             model=self,
@@ -168,35 +166,28 @@ class IrritabilityModel(mesa.Model):
         )
 
     def step(self):
-        print(f"model step {self.steps}")
-
         # Check for terminal state => terminate before action
         states = self.agents.map("get_state")
         if any(s in (IrritabilityAgent.State.GOAL_ABANDONED,
                      IrritabilityAgent.State.GOAL_GRANTED)
                for s in states):
-            print("reached a terminal state")
             self.running = False
 
-            # TODO: Set action, reward, etc. to None
+            self.agents.do("clear_variables_for_terminal_state")
 
             self.datacollector.collect(self)
 
             # Work-around for the off-by-one bug in batch_run
-            self.steps = 3
+            self.steps += 1
 
             return
 
-        print("telling agents to choose_action_and_act()")
         self.agents.do("choose_action_and_act")
 
         self.datacollector.collect(self)
 
-        print("telling agents to update_emotions_and_learn()")
         self.agents.do("update_emotions_and_learn")
-
-        print("telling agents to transit_state()")
-        self.agents.map("transit_state")
+        self.agents.do("transit_state")
 
 
 if __name__ == "__main__":
