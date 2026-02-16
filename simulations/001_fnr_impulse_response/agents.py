@@ -6,6 +6,7 @@ from enum import Enum
 
 RealNumber = Union[float, np.floating]
 
+
 class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     class Action(Enum):
         NEUTRAL = (0, "theta_N", "p_N")
@@ -30,7 +31,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         "theta_A_w0",
         "theta_A_w1",
         "theta_A",       # current tendency for aggressive behavior (logits)
-        "p_N",           # current probability for friendly behavior
+        "p_N",           # current probability for neutral behavior
         "p_F",           # current probability for friendly behavior
         "p_A",           # current probability for aggressive behavior
         "a",              # current action chosen
