@@ -113,10 +113,20 @@ class IrritabilityModel(mesa.Model):
             }
         )
 
+        # Save initial state values and emotions for preparing later episodes
+        self._V_init = V
+        self._M_A_init = M_A
+        self._M_S_init = M_S
+        self._theta_N_w0_init = theta_N_w0
+        self._theta_F_w0_init = theta_F_w0
+        self._theta_A_w0_init = theta_A_w0
+        self._theta_A_w1_init = theta_A_w1
+
         # Create agents
         IrritabilityAgent.create_agents(
             model=self,
             n=1,  # number of agents
+            environment=self.environment,
             V=V,
             M_A=M_A,
             M_S=M_S,
@@ -134,14 +144,39 @@ class IrritabilityModel(mesa.Model):
             alpha=alpha,
             kappa=kappa,
             w_v_A=w_v_A,
+            theta_N_w0=theta_N_w0,
+            theta_F_w0=theta_F_w0,
+            theta_A_w0=theta_A_w0,
+            theta_A_w1=theta_A_w1,
         )
 
     def step(self):
-        self.agents.shuffle_do("act")
+        new_episode = self.steps % 2 == 1
 
-        self.datacollector.collect(self)
+        if new_episode:
+            self.agents.shuffle_do(
+                "prepare_new_episode",
+                V=self._V_init,
+                M_A=self._M_A_init,
+                M_S=self._M_S_init,
+                theta_N_w0=self._theta_N_w0_init,
+                theta_F_w0=self._theta_F_w0_init,
+                theta_A_w0=self._theta_A_w0_init,
+                theta_A_w1=self._theta_A_w1_init,
+            )
 
-        self.agents.shuffle_do("update_emotions_and_learn")
+            self.agents.shuffle_do("choose_action_and_act")
+
+            self.datacollector.collect(self)
+
+            self.agents.shuffle_do("update_emotions_and_learn")
+
+        else:
+            self.agents.shuffle_do("choose_action_and_act")
+
+            self.datacollector.collect(self)
+
+            # No need to update emotions because episode is over
 
 
 if __name__ == "__main__":

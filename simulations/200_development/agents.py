@@ -169,12 +169,12 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             "rpe": None,
             "lambda_A": lambda_A,
             "C_start": C_start,
-            "C_stop": C_end,
+            "C_end": C_end,
             "lambda_C": lambda_C,
             "midpoint_C": midpoint_C,
             "C": None,
             "I_start": I_start,
-            "I_stop": I_end,
+            "I_end": I_end,
             "lambda_I": lambda_I,
             "midpoint_I": midpoint_I,
             "I": None,
@@ -196,6 +196,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             "p_A": None,
             "a": None,
             "trial_nr": 1,
+            "episode": 0,
         }
 
         self._environment = environment
@@ -211,6 +212,25 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
     def print_variables(self):
         print(self._variables)
+
+    def prepare_new_episode(self,
+                            V: RealNumber,
+                            M_A: RealNumber,
+                            M_S: RealNumber,
+                            theta_N_w0: RealNumber,
+                            theta_F_w0: RealNumber,
+                            theta_A_w0: RealNumber,
+                            theta_A_w1: RealNumber):
+
+        self._variables["episode"] += 1
+
+        self._variables["V"] = V
+        self._variables["M_A"] = M_A
+        self._variables["M_S"] = M_S
+        self._variables["theta_N_w0"] = theta_N_w0
+        self._variables["theta_F_w0"] = theta_F_w0
+        self._variables["theta_A_w0"] = theta_A_w0
+        self._variables["theta_A_w1"] = theta_A_w1
 
     def calculate_action_tendencies(self):
         # Calculate logits
