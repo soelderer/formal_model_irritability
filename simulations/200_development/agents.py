@@ -305,6 +305,7 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
 
     def get_vigor(self):
         I = self.get_response_inhibition()
+        self._variables["I"] = I
 
         return (1 - I) * IrritabilityAgent.sigmoid(
             self._variables["w_v_A"] * abs(self._variables["M_A"])

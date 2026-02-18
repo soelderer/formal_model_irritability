@@ -12,50 +12,100 @@ Action = agents.IrritabilityAgent.Action
 RealNumber = Union[float, np.floating]
 
 
-class IrritabilityModel(mesa.Model):
-    """A model with some number of agents."""
+class EnvironmentType(Enum):
+    EnvironmentNeutral = auto()
+    EnvironmentAversive = auto()
+    EnvironmentAppetitive = auto()
 
-    class EnvironmentType(Enum):
-        EnvironmentNeutral = auto()
 
-    @dataclass
-    class EnvironmentNeutral:
-        random: np.random.Generator = field(
-            default_factory=np.random.default_rng)
+@dataclass
+class Environment:
+    _environment_type: EnvironmentType
 
-        # This maps actions to probabilities of reward:
-        # action: [(probability, reward1), ...]
-        transition_table = {
+    _random: np.random.Generator
+
+    # This maps actions to probabilities of reward:
+    # action: [(probability, reward1), ...]
+    _transition_table = {
+        EnvironmentType.EnvironmentNeutral: {
             Action.REQUEST_AGGRESSIVELY: [
-                (0.4, +1.0),
-                (0.6, -1.0),
+                (0.2, +1.0),
+                (0.7, 0.0),
+                (0.1, -1.0),
             ],
 
             Action.REQUEST_FRIENDLY: [
-                (0.4, +1.0),
-                (0.6, -1.0),
+                (0.2, +1.0),
+                (0.7, 0.0),
+                (0.1, -1.0),
             ],
 
             Action.REQUEST_NEUTRALLY: [
-                (0.4, +1.0),
-                (0.6, -1.0),
+                (0.2, +1.0),
+                (0.7, 0.0),
+                (0.1, -1.0),
+            ],
+        },
+
+        EnvironmentType.EnvironmentAversive: {
+            Action.REQUEST_AGGRESSIVELY: [
+                (0.1, +1.0),
+                (0.2, 0.0),
+                (0.7, -1.0),
+            ],
+
+            Action.REQUEST_FRIENDLY: [
+                (0.1, +1.0),
+                (0.2, 0.0),
+                (0.7, -1.0),
+            ],
+
+            Action.REQUEST_NEUTRALLY: [
+                (0.1, +1.0),
+                (0.2, 0.0),
+                (0.7, -1.0),
+            ],
+        },
+
+        EnvironmentType.EnvironmentAppetitive: {
+            Action.REQUEST_AGGRESSIVELY: [
+                (0.7, +1.0),
+                (0.2, 0.0),
+                (0.1, -1.0),
+            ],
+
+            Action.REQUEST_FRIENDLY: [
+                (0.7, +1.0),
+                (0.2, 0.0),
+                (0.1, -1.0),
+            ],
+
+            Action.REQUEST_NEUTRALLY: [
+                (0.7, +1.0),
+                (0.2, 0.0),
+                (0.1, -1.0),
             ],
         }
+    }
 
-        def act(
-            self,
-            action: Action,
-            v: RealNumber
-        ) -> RealNumber:
+    def act(
+        self,
+        action: Action,
+        v: RealNumber
+    ) -> RealNumber:
 
-            transitions = self.transition_table[action]
+        transitions = self._transition_table[self._environment_type][action]
 
-            probs = [transition[0] for transition in transitions]
+        probs = [transition[0] for transition in transitions]
 
-            index = self.random.choice(len(probs), p=probs)
-            transition = transitions[index]
+        index = self._random.choice(len(probs), p=probs)
+        transition = transitions[index]
 
-            return (transition[1])
+        return (transition[1])
+
+
+class IrritabilityModel(mesa.Model):
+    """A model with some number of agents."""
 
     def __init__(
         self,
@@ -92,13 +142,7 @@ class IrritabilityModel(mesa.Model):
         self.random = np.random.default_rng(seed)
 
         # Instantiate Environment
-        match environment_type:
-            case self.EnvironmentType.EnvironmentNeutral:
-                self.environment = self.EnvironmentNeutral(self.random)
-            case _:
-                raise NotImplementedError(
-                    f"EnvironmentType {environment_type} is not implemented."
-                )
+        self.environment = Environment(environment_type, self.random)
 
         # Instantiate DataCollector
         self.datacollector = mesa.DataCollector(
