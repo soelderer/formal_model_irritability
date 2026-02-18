@@ -27,18 +27,18 @@ class IrritabilityModel(mesa.Model):
         # action: [(probability, reward1), ...]
         transition_table = {
             Action.REQUEST_AGGRESSIVELY: [
-                (0.1, +1.0),
-                (0.9, 0.0),
+                (0.4, +1.0),
+                (0.6, -1.0),
             ],
 
             Action.REQUEST_FRIENDLY: [
-                (0.1, +1.0),
-                (0.9, 0.0),
+                (0.4, +1.0),
+                (0.6, -1.0),
             ],
 
             Action.REQUEST_NEUTRALLY: [
-                (0.1, +1.0),
-                (0.9, 0.0),
+                (0.4, +1.0),
+                (0.6, -1.0),
             ],
         }
 

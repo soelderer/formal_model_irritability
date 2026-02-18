@@ -131,10 +131,10 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
                 f"lambda_C must be between 0 and 1, got {lambda_C}"
             )
 
-        # midpoint_C must be in [100, 200]
-        if not (100 <= midpoint_C <= 200):
+        # midpoint_C must be >= 0
+        if not (0 <= midpoint_C):
             raise ValueError(
-                f"midpoint_C must be between 100 and 200, got {midpoint_C}"
+                f"midpoint_C must be >= 0, got {midpoint_C}"
             )
 
         # I_start must be in [0,1]
@@ -155,10 +155,10 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
                 f"lambda_I must be between 0 and 1, got {lambda_I}"
             )
 
-        # midpoint_I must be in [100, 200]
-        if not (100 <= midpoint_I <= 200):
+        # midpoint_I must be >= 0
+        if not (0 <= midpoint_I):
             raise ValueError(
-                f"midpoint_I must be between 100 and 200, got {midpoint_I}"
+                f"midpoint_I must be >= 0, got {midpoint_I}"
             )
 
         self._variables = {
@@ -309,18 +309,6 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         return (1 - I) * IrritabilityAgent.sigmoid(
             self._variables["w_v_A"] * abs(self._variables["M_A"])
         )
-
-    def get_reward(self):
-        if self._variables["block_nr"] == 1:
-            return 0.5 if self.random.random() < 0.98 else -0.5
-
-        elif self._variables["block_nr"] == 2:
-            return 0.5 if self.random.random() < 0.40 else -0.5
-
-        else:
-            raise ValueError("Invalid block number:", self._variables[
-                "block_nr"]
-            )
 
     def negativity_bias(self, affective_input):
         return (
