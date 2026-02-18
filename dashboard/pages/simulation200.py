@@ -264,7 +264,7 @@ layout = [
                         "always_visible": True, "placement": "bottom"},
                     updatemode="drag",
                     id="sim200-gamma-slider",
-                    persistence=True,
+                    persistence=False,
                 ),
             ], style={"width": "100%",
                       "display": "inline-block",
@@ -548,18 +548,30 @@ layout = [
     Input(
         "sim200-kappa-slider", "value"),
     Input(
+        "sim200-C_start-slider", "value"),
+    Input(
+        "sim200-C_end-slider", "value"),
+    Input(
         "sim200-lambda_C-slider", "value"),
     Input(
         "sim200-midpoint_C-slider", "value"),
     Input(
-        "sim200-w_v_A-slider", "value"),
+        "sim200-I_start-slider", "value"),
     Input(
-        "sim200-I-slider", "value"),
+        "sim200-I_end-slider", "value"),
+    Input(
+        "sim200-lambda_I-slider", "value"),
+    Input(
+        "sim200-midpoint_I-slider", "value"),
+    Input(
+        "sim200-w_v_A-slider", "value"),
     Input(
         "sim200-iteration-selector", "value"),
 )
-def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C,
-                 w_v_A, I, selected_iteration):
+def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
+                 midpoint_C, I_start, I_end, lambda_I, midpoint_I,
+                 w_v_A, selected_iteration):
+
     if selected_iteration == "expected":
         filters = [
             ("lambda_A",
@@ -572,14 +584,24 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C,
              "=", alpha),
             ("kappa",
              "=", kappa),
+            ("C_start",
+             "=", C_start),
+            ("C_end",
+             "=", C_end),
             ("lambda_C",
              "=", lambda_C),
             ("midpoint_C",
              "=", midpoint_C),
+            ("I_start",
+             "=", I_start),
+            ("I_end",
+             "=", I_end),
+            ("lambda_I",
+             "=", lambda_I),
+            ("midpoint_I",
+             "=", midpoint_I),
             ("w_v_A",
              "=", w_v_A),
-            ("I",
-             "=", I),
         ]
 
         # read only filtered rows and needed columns
@@ -596,7 +618,12 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C,
             filters=filters
         )
 
-        dff = table.to_pandas().sort_values("Step")
+        dff = (
+            table.
+            to_pandas()
+            .query("Step % 2 == 0")  # only even Steps
+            .sort_values("Step")
+        )
 
         # shaded bounds
         V_upper = dff["V_mean"] + dff["V_std"]
@@ -775,14 +802,24 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C,
              "=", alpha),
             ("kappa",
              "=", kappa),
+            ("C_start",
+             "=", C_start),
+            ("C_end",
+             "=", C_end),
             ("lambda_C",
              "=", lambda_C),
             ("midpoint_C",
              "=", midpoint_C),
+            ("I_start",
+             "=", I_start),
+            ("I_end",
+             "=", I_end),
+            ("lambda_I",
+             "=", lambda_I),
+            ("midpoint_I",
+             "=", midpoint_I),
             ("w_v_A",
              "=", w_v_A),
-            ("I",
-             "=", I),
         ]
 
         cols_needed = ["Step", "V", "M_A", "M_S", "C", "v"]
@@ -798,8 +835,12 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C,
             filters=filters
         )
 
-        # convert to pandas and sort
-        dff = table.to_pandas().sort_values("Step")
+        dff = (
+            table.
+            to_pandas()
+            .query("Step % 2 == 0")  # only even Steps
+            .sort_values("Step")
+        )
 
         fig = make_subplots(
             rows=3,
