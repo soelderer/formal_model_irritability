@@ -606,7 +606,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
 
         # read only filtered rows and needed columns
         cols_needed = ["Step", "V_mean", "V_std", "M_A_mean", "M_A_std",
-                       "M_S_mean", "M_S_std", "C", "v_mean", "v_std"]
+                       "M_S_mean", "M_S_std", "C", "v_mean", "v_std", "I"]
 
         table = pq.read_table(
             os.path.join(
@@ -625,6 +625,8 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             .sort_values("Step")
         )
 
+        print(dff.columns)
+
         # shaded bounds
         V_upper = dff["V_mean"] + dff["V_std"]
         V_lower = dff["V_mean"] - dff["V_std"]
@@ -636,7 +638,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
         v_lower = dff["v_mean"] - dff["v_std"]
 
         fig = make_subplots(
-            rows=3,
+            rows=4,
             cols=1,
             shared_xaxes=True,
             vertical_spacing=0.05,
@@ -671,6 +673,44 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
 
         fig.add_hline(y=0, row=1, col=1)
 
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
+
+        # --- C trace  ---
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["C"],
+                mode="lines",
+                name="Controllability",
+                line=dict(color="green"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["I"],
+                mode="lines",
+                name="Response inhibition",
+                line=dict(color="purple"),
+            ),
+            row=2,
+            col=1,
+        )
+
+        fig.add_hline(y=0, row=2, col=1)
+        # fig.add_vline(x=100, line_dash="dash")
+
+        fig.update_yaxes(
+            title_text="Controllability and inhibition",
+            range=[0, 1],
+            row=2,
+            col=1,
+        )
+        fig.update_xaxes(title_text="Step", row=2, col=1)
+
         # --- Emotions (bottom: M_A + M_S, same axis) ---
         fig.add_trace(
             go.Scatter(
@@ -680,7 +720,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 name="Anger/frustration",
                 line=dict(color="red"),
             ),
-            row=2,
+            row=3,
             col=1,
         )
 
@@ -694,7 +734,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 hoverinfo="skip",
                 showlegend=False,
             ),
-            row=2,
+            row=3,
             col=1,
         )
 
@@ -706,7 +746,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 name="Sadness",
                 line=dict(color="orange"),
             ),
-            row=2,
+            row=3,
             col=1,
         )
 
@@ -720,34 +760,18 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 hoverinfo="skip",
                 showlegend=False,
             ),
-            row=2,
+            row=3,
             col=1,
         )
 
-        # --- C trace (bottom: emotions, no stderr) ---
-        fig.add_trace(
-            go.Scatter(
-                x=dff["Step"],
-                y=dff["C"],
-                mode="lines",
-                name="Controllability",
-                line=dict(color="green"),
-            ),
-            row=2,
-            col=1,
-        )
-
-        fig.add_hline(y=0, row=2, col=1)
-        fig.add_vline(x=100, line_dash="dash")
-
-        fig.update_yaxes(title_text="Value of state", row=1, col=1)
         fig.update_yaxes(
             title_text="Emotions",
             range=[-2, 2],
-            row=2,
+            row=3,
             col=1,
         )
-        fig.update_xaxes(title_text="Step", row=2, col=1)
+
+        fig.add_hline(y=0, row=3, col=1)
 
         # --- Response vigor ---
         fig.add_trace(
@@ -758,7 +782,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 name="Response vigor",
                 line=dict(color="magenta"),
             ),
-            row=3,
+            row=4,
             col=1,
         )
 
@@ -772,20 +796,20 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
                 hoverinfo="skip",
                 showlegend=False,
             ),
-            row=3,
+            row=4,
             col=1,
         )
 
         fig.update_yaxes(
             title_text="Response vigor",
             range=[0, 1],
-            row=3,
+            row=4,
             col=1,
         )
-        fig.add_hline(y=0.5, row=3, col=1)
-        fig.add_vline(x=100, line_dash="dash")
+        fig.add_hline(y=0.5, row=4, col=1)
+        # fig.add_vline(x=100, line_dash="dash")
 
-        fig.update_xaxes(title_text="Step", row=3, col=1)
+        fig.update_xaxes(title_text="Step", row=4, col=1)
 
         return fig
 
@@ -822,7 +846,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
              "=", w_v_A),
         ]
 
-        cols_needed = ["Step", "V", "M_A", "M_S", "C", "v"]
+        cols_needed = ["Step", "V", "M_A", "M_S", "C", "v", "I"]
 
         # read only filtered rows and selected columns
         table = pq.read_table(
@@ -834,6 +858,8 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             columns=cols_needed,
             filters=filters
         )
+
+        print(table)
 
         dff = (
             table.
@@ -862,6 +888,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             col=1,
         )
 
+        fig.update_yaxes(title_text="Value of state", row=1, col=1)
         fig.add_hline(y=0, row=1, col=1)
 
         # --- Emotions (bottom: M_A + M_S, same axis) ---
@@ -902,17 +929,35 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             col=1,
         )
 
-        fig.add_hline(y=0, row=2, col=1)
-        fig.add_vline(x=100, line_dash="dash")
-
-        fig.update_yaxes(title_text="Value of state", row=1, col=1)
         fig.update_yaxes(
-            title_text="Emotions",
-            range=[-2, 2],
+            title_text="Controllability and inhibition",
+            range=[0, 1],
             row=2,
             col=1,
         )
+
+        fig.add_hline(y=0, row=2, col=1)
+        # fig.add_vline(x=100, line_dash="dash")
+
+        fig.update_yaxes(
+            title_text="Emotions",
+            range=[-2, 2],
+            row=3,
+            col=1,
+        )
         fig.update_xaxes(title_text="Step", row=2, col=1)
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["I"],
+                mode="lines",
+                name="Response inhibition",
+                line=dict(color="purple"),
+            ),
+            row=2,
+            col=1,
+        )
 
         # --- Response vigor ---
         fig.add_trace(
@@ -935,7 +980,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
         )
 
         fig.add_hline(y=0.5, row=3, col=1)
-        fig.add_vline(x=100, line_dash="dash")
+        # fig.add_vline(x=100, line_dash="dash")
 
         fig.update_xaxes(title_text="Step", row=3, col=1)
 
