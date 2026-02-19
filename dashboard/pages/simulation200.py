@@ -638,8 +638,6 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             .sort_values("Step")
         )
 
-        print(dff.columns)
-
         # shaded bounds
         V_upper = dff["V_mean"] + dff["V_std"]
         V_lower = dff["V_mean"] - dff["V_std"]
