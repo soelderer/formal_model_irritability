@@ -20,24 +20,32 @@ dash.register_page(
 )
 
 description = """
-    In Simulation 200, we extend the previous setup by introducing response
-    inhibition as an additional modulatory factor on response vigor. As in
-    Simulation 5, anger/frustration and sadness emerge as a function of perceived
-    controllability, and emotional intensity determines the urgency with which
-    actions are executed. Response inhibition selectively attenuates the
-    translation of emotional action readiness into overt response vigor, without
-    affecting emotional magnitude, action selection, or learning.
+    In Simulation 200, we shift gears: instead of simulating experimental trials,
+    we simulate development over a longer time period (arbitrary time scale).
+    Perceived controllability (C) and response inhibition (I) can be varied across
+    development. For pragmatic reasons, both C and I follow a logistic shape, and
+    the researcher can tune start/end values, inflection points, and steepness of
+    change.
 
-    Using the same task structure and controllability manipulation as in Simulation
-    5, we examine how developmental differences in response inhibition shape
-    behavioral outcomes under frustrative nonreward. High response inhibition
-    dampens vigorous responding even in the presence of intense anger, whereas low
-    response inhibition allows emotional urgency to translate more directly into
-    overt action. This extension illustrates how variation in inhibitory control
-    can dissociate emotional intensity from behavioral expression, providing a
-    mechanistic account of divergent developmental trajectories under otherwise
-    similar emotional dynamics.
-    """
+    We simulate many episodes, each with two steps. Agents choose actions that
+    are friendly, neutral, or aggressive. In step 1, an action is performed and
+    a (non)reward is received. In step 2, agents respond to the first outcome.
+    Anger increases momentary aggressive tendencies, and emotional intensity of
+    frustration/anger increases response vigor. We only plot step 2 responses.
+
+    We plot emotions, response vigor, and probabilities of aggressive actions in
+    step 2.
+    A temper outburst is an aggressive action with high response vigor in response
+    to a nonreward.
+
+    Three agent-perceived environments are available: aversive (70% punishments
+    -1, 20% neutral, 10% rewards +1); neutral (70% neutral, 10% punishments -1,
+    20% rewards +1); appetitive (70% rewards +1, 20% neutral, 10% punishments
+    -1).
+
+    This setup lets us explore how emotions and response vigor vary with
+    environment and developmental trajectories of C and I.
+"""
 
 meta_df = pd.read_parquet(
     os.path.join(
