@@ -31,7 +31,9 @@ description = """
     are friendly, neutral, or aggressive. In step 1, an action is performed and
     a (non)reward is received. In step 2, agents respond to the first outcome.
     Anger increases momentary aggressive tendencies, and emotional intensity of
-    frustration/anger increases response vigor. We only plot step 2 responses.
+    frustration/anger increases response vigor.
+    Step 1 always starts with neutral emotions and neutral state values, so
+    episodes are decoupled and there is no learning in the present simulation.
 
     We plot emotions, response vigor, and probabilities of aggressive actions in
     step 2.
@@ -144,46 +146,46 @@ def layout(state_str: str = None, **_kwargs):
                             html.Th("Interpretation", style={
                                     "padding": "0 12px"}),
                         ], style={**config.toprule, **config.midrule}),
+                        # html.Tr([
+                        #     html.Td("eta", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td("[0, 1]", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td(
+                        #         ("Learning rate: how quickly value "
+                        #          "expectations update"),
+                        #         style={"padding": "0 12px"}),
+                        # ]),
+                        # html.Tr([
+                        #     html.Td("gamma", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td("[0, 1]", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td(("Discount factor: weight given to "
+                        #             "future rewards"),
+                        #             style={"padding": "0 12px"}),
+                        # ]),
+                        # html.Tr([
+                        #     html.Td("lambda_A", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td("[0, 1]", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td(("Affective inertia: higher values → "
+                        #             "slower emotion updates"),
+                        #             style={"padding": "0 12px"}),
+                        # ]),
+                        # html.Tr([
+                        #     html.Td("alpha", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td("[0, 1]", style={
+                        #             "padding": "0 12px"}),
+                        #     html.Td(("Relative weighting of prediction errors "
+                        #             "versus absolute rewards as affective inputs "
+                        #              "(1 ... only RPE)"),
+                        #             style={"padding": "0 12px"}),
+                        # ]),
                         html.Tr([
-                            html.Td("η", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0, 1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(
-                                ("Learning rate: how quickly value "
-                                 "expectations update"),
-                                style={"padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("γ", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0, 1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("Discount factor: weight given to "
-                                    "future rewards"),
-                                    style={"padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("λ_A", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0, 1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("Affective inertia: higher values → "
-                                    "slower emotion updates"),
-                                    style={"padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("α", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0, 1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("Relative weighting of prediction errors "
-                                    "versus absolute rewards as affective inputs "
-                                     "(1 ... only RPE)"),
-                                    style={"padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("κ", style={
+                            html.Td("kappa", style={
                                     "padding": "0 12px"}),
                             html.Td("> 1", style={
                                     "padding": "0 12px"}),
@@ -193,23 +195,76 @@ def layout(state_str: str = None, **_kwargs):
                                 style={"padding": "0 12px"},),
                         ]),
                         html.Tr([
-                            html.Td("λ_C", style={
+                            html.Td("C_start", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("Start value of perceived controllability"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("C_end", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("End value of perceived controllability"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("lambda_C", style={
                                     "padding": "0 12px"}),
                             html.Td("[0,1]", style={
                                     "padding": "0 12px"}),
                             html.Td((
-                                "Controllability learning rate: speed at which "
-                                "perceived controllability declines across "
-                                "trials in the uncontrollable block"),
+                                "Speed at which "
+                                "perceived controllability changes across "
+                                "development"),
                                 style={"padding": "0 12px"},),
                         ]),
                         html.Tr([
-                            html.Td("midpoint", style={
+                            html.Td("midpoint_C", style={
                                     "padding": "0 12px"}),
-                            html.Td("[100,200]", style={
+                            html.Td("[0,100]", style={
                                     "padding": "0 12px"}),
                             html.Td((
-                                "Trial number at which C reaches 50% "
+                                "Episode at which C reaches 50% "
+                                "(inflection point of the decay)"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("I_start", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("Start value of response inhibition"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("I_end", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("End value of response inhibition"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("lambda_I", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td((
+                                "Speed at which "
+                                "response inhibition changes across "
+                                "development"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("midpoint_I", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,100]", style={
+                                    "padding": "0 12px"}),
+                            html.Td((
+                                "Episode at which I reaches 50% "
                                 "(inflection point of the decay)"),
                                 style={"padding": "0 12px"},),
                         ]),
@@ -222,17 +277,7 @@ def layout(state_str: str = None, **_kwargs):
                                 "Contribution of frustration/anger to "
                                 "response vigor"),
                                 style={"padding": "0 12px"},),
-                        ],),
-                        html.Tr([
-                            html.Td("I", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Degree of response inhibition"),
-                                style={"padding": "0 12px"},),
-                        ],
-                            style=config.bottomrule),
+                        ], style=config.bottomrule),
                     ],
                     style=config.table_style,
                 )
@@ -261,8 +306,8 @@ def layout(state_str: str = None, **_kwargs):
                         persistence=True,
                     ),
                 ], style={"width": "100%",
-                          "display": "inline-block",
-                          "padding": "0 10px"}),
+                          "display": "none",
+                          "padding": "0 10px", }),
                 html.Div([
                     html.Label("eta", style={
                         "textAlign": "center"}),
@@ -283,7 +328,7 @@ def layout(state_str: str = None, **_kwargs):
                         persistence=True,
                     ),
                 ], style={"width": "100%",
-                          "display": "inline-block",
+                          "display": "none",
                           "padding": "0 10px"}),
                 html.Div([
                     html.Label("gamma", style={
@@ -305,7 +350,7 @@ def layout(state_str: str = None, **_kwargs):
                         persistence=False,
                     ),
                 ], style={"width": "100%",
-                          "display": "inline-block",
+                          "display": "none",
                           "padding": "0 10px"}),
                 html.Div([
                     html.Label("alpha", style={
@@ -327,7 +372,7 @@ def layout(state_str: str = None, **_kwargs):
                         persistence=True,
                     ),
                 ], style={"width": "100%",
-                          "display": "inline-block",
+                          "display": "none",
                           "padding": "0 10px"}),
                 html.Div([
                     html.Label("kappa", style={
@@ -936,7 +981,6 @@ def update_graph(hash_value):
             row=2,
             col=1,
         )
-        fig.update_xaxes(title_text="Step", row=2, col=1)
 
         # --- Emotions (bottom: M_A + M_S, same axis) ---
         fig.add_trace(
@@ -1036,7 +1080,7 @@ def update_graph(hash_value):
         fig.add_hline(y=0.5, row=4, col=1)
         # fig.add_vline(x=100, line_dash="dash")
 
-        fig.update_xaxes(title_text="Step", row=4, col=1)
+        fig.update_xaxes(title_text="Episode", row=4, col=1)
 
         return fig
 
@@ -1186,7 +1230,6 @@ def update_graph(hash_value):
             row=3,
             col=1,
         )
-        fig.update_xaxes(title_text="Step", row=2, col=1)
 
         fig.add_trace(
             go.Scatter(
@@ -1223,6 +1266,6 @@ def update_graph(hash_value):
         fig.add_hline(y=0.5, row=4, col=1)
         # fig.add_vline(x=100, line_dash="dash")
 
-        fig.update_xaxes(title_text="Step", row=4, col=1)
+        fig.update_xaxes(title_text="Episode", row=4, col=1)
 
         return fig
