@@ -1,5 +1,6 @@
 import dash
 from dash import ALL, html, dcc, callback, Output, Input, State
+from dash.exceptions import PreventUpdate
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -576,6 +577,7 @@ def layout(state_str: str = None, **_kwargs):
 
 @callback(
     Output("main-url", "hash", allow_duplicate=True),
+    Input("main-url", "href"),
     Input("sim200-lambda_A-slider", "value"),
     Input("sim200-eta-slider", "value"),
     Input("sim200-gamma-slider", "value"),
@@ -592,12 +594,14 @@ def layout(state_str: str = None, **_kwargs):
     Input("sim200-w_v_A-slider", "value"),
     Input("sim200-iteration-selector", "value"),
     Input("sim200-environment_type-selector", "value"),
+    State("main-url", "hash"),
     prevent_initial_call="initial_duplicate",
 )
-def update_hash(lambda_A, eta, gamma, alpha, kappa,
+def update_hash(_href, lambda_A, eta, gamma, alpha, kappa,
                 C_start, C_end, lambda_C, midpoint_C,
                 I_start, I_end, lambda_I, midpoint_I,
-                w_v_A, iteration, environment_type):
+                w_v_A, iteration, environment_type,
+                current_hash):
     """Update the URL hash with the current app state."""
 
     state = {
@@ -619,7 +623,15 @@ def update_hash(lambda_A, eta, gamma, alpha, kappa,
         "environment_type": environment_type,
     }
 
-    return "#" + base64.b64encode(json.dumps(state).encode("utf-8")).decode("utf-8")
+    print("update_hash()")
+
+    new_hash = "#" + base64.b64encode(json.dumps(state).encode()).decode()
+
+    if new_hash == current_hash:
+        print("update_hash prevents Update!")
+        raise PreventUpdate
+
+    return new_hash
 
 
 @callback(
@@ -678,16 +690,17 @@ def load_from_hash(
 
     if not hash_value:
         # No hash → use persisted values
-        raise dash.exceptions.PreventUpdate
+        print("load_from_hash() prevents Update! no hash")
+        raise PreventUpdate
 
     try:
         state = json.loads(base64.b64decode(hash_value[1:]))
     except Exception:
         # Invalid hash → fallback to persisted values
-        raise dash.exceptions.PreventUpdate
+        print("load_from_hash() prevents Update! invalid hash")
+        raise PreventUpdate
 
-    # Return values: URL hash wins, fallback to current (persisted)
-    return tuple(
+    new_values = [
         state.get(key, current)
         for key, current in zip(
             [
@@ -703,64 +716,82 @@ def load_from_hash(
                 current_w_v_A, current_iteration, current_environment_type,
             ]
         )
-    )
+    ]
+
+    # Check which ones differ
+    current_values = [
+        current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
+        current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
+        current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
+        current_w_v_A, current_iteration, current_environment_type,
+    ]
+
+    keys = [
+        "lambda_A", "eta", "gamma", "alpha", "kappa",
+        "C_start", "C_end", "lambda_C", "midpoint_C",
+        "I_start", "I_end", "lambda_I", "midpoint_I",
+        "w_v_A", "iteration", "environment_type",
+    ]
+
+    diffs = []
+    import math
+    for k, old, new in zip(keys, current_values, new_values):
+        if isinstance(old, float) and isinstance(new, float):
+            if not math.isclose(old, new, rel_tol=1e-9):
+                diffs.append((k, old, new))
+        else:
+            if old != new:
+                diffs.append((k, old, new))
+
+    if diffs:
+        print("Values changed:", diffs)
+
+    # Only update sliders if anything changed
+    if new_values == [
+        current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
+        current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
+        current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
+        current_w_v_A, current_iteration, current_environment_type,
+    ]:
+        print("load_from_hash() prevents Update! no values changed")
+        raise PreventUpdate
+
+    print("load_from_hash() executed")
+
+    return new_values
 
 
 @callback(
     Output("sim200-graph-content", "figure"),
-    Input("sim200-lambda_A-slider", "value"),
-    Input("sim200-eta-slider", "value"),
-    Input("sim200-gamma-slider", "value"),
-    Input("sim200-alpha-slider", "value"),
-    Input("sim200-kappa-slider", "value"),
-    Input("sim200-C_start-slider", "value"),
-    Input("sim200-C_end-slider", "value"),
-    Input("sim200-lambda_C-slider", "value"),
-    Input("sim200-midpoint_C-slider", "value"),
-    Input("sim200-I_start-slider", "value"),
-    Input("sim200-I_end-slider", "value"),
-    Input("sim200-lambda_I-slider", "value"),
-    Input("sim200-midpoint_I-slider", "value"),
-    Input("sim200-w_v_A-slider", "value"),
-    Input("sim200-iteration-selector", "value"),
-    Input("sim200-environment_type-selector", "value"),
     Input("main-url", "hash"),
-    prevent_initial_call=False,
+    prevent_initial_call=True,
 )
-def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
-                 midpoint_C, I_start, I_end, lambda_I, midpoint_I,
-                 w_v_A, selected_iteration, environment_type, hash_value):
-
-    print("update_graph!")
-
-    # Pack current slider values in the order expected by load_from_hash
-    current_values = (
-        lambda_A, eta, gamma, alpha, kappa,
-        C_start, C_end, lambda_C, midpoint_C,
-        I_start, I_end, lambda_I, midpoint_I,
-        w_v_A, selected_iteration, environment_type,
-    )
-
-    # Decode values from hash if present, fallback to current (persisted) values
+def update_graph(hash_value):
     if hash_value:
         try:
-            slider_values = load_from_hash(hash_value, *current_values)
-        except exceptions.PreventUpdate:
-            slider_values = current_values
+            state = json.loads(base64.b64decode(hash_value[1:]))
+        except Exception:
+            state = {}
     else:
-        slider_values = current_values
+        state = {}  # fallback to defaults
 
-    # Unpack slider values
-    (
-        lambda_A, eta, gamma, alpha, kappa,
-        C_start, C_end, lambda_C, midpoint_C,
-        I_start, I_end, lambda_I, midpoint_I,
-        w_v_A, selected_iteration, environment_type,
-    ) = slider_values
+    # Merge with defaults for missing keys
+    state = defaults | state
 
-    print(slider_values)
+    lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C, midpoint_C, \
+        I_start, I_end, lambda_I, midpoint_I, w_v_A, iteration, \
+        environment_type = (
+            state[k] for k in [
+                "lambda_A", "eta", "gamma", "alpha", "kappa",
+                "C_start", "C_end", "lambda_C", "midpoint_C",
+                "I_start", "I_end", "lambda_I", "midpoint_I",
+                "w_v_A", "iteration", "environment_type"
+            ]
+        )
 
-    if selected_iteration == "expected":
+    print("updating graph")
+
+    if iteration == "expected":
         filters = [
             ("lambda_A",
              "=", lambda_A),
@@ -1043,7 +1074,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C,
             os.path.join(
                 config.DATA_DIR,
                 "200_development",
-                f"200_development_{selected_iteration}.parquet"
+                f"200_development_{iteration}.parquet"
             ),
             columns=cols_needed,
             filters=filters
