@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, State
 import dash
 import dash_bootstrap_components as dbc
 import webbrowser
@@ -9,6 +9,9 @@ app = Dash(
     __name__,
     use_pages=True,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
+    routing_callback_inputs={
+        "state": State("main-url", "hash")
+    }
 )
 
 app.server.config["PROPAGATE_EXCEPTIONS"] = True
@@ -52,7 +55,11 @@ sidebar = html.Div(
 
 content = html.Div(dash.page_container, style=CONTENT_STYLE)
 
-app.layout = html.Div([sidebar, content])
+app.layout = html.Div([
+    dcc.Location(id="main-url"),
+    sidebar,
+    content,
+])
 
 # Expose the Flask server for Gunicorn
 server = app.server
