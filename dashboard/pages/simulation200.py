@@ -880,7 +880,8 @@ def update_graph(hash_value):
 
         # read only filtered rows and needed columns
         cols_needed = ["Step", "V_mean", "V_std", "M_A_mean", "M_A_std",
-                       "M_S_mean", "M_S_std", "C", "v_mean", "v_std", "I"]
+                       "M_S_mean", "M_S_std", "C", "v_mean", "v_std", "I",
+                       "p_A_mean", "p_A_std"]
 
         table = pq.read_table(
             os.path.join(
@@ -908,9 +909,11 @@ def update_graph(hash_value):
         M_S_lower = dff["M_S_mean"] - dff["M_S_std"]
         v_upper = dff["v_mean"] + dff["v_std"]
         v_lower = dff["v_mean"] - dff["v_std"]
+        # p_A_upper = dff["p_A_mean"] + dff["p_A_std"]
+        # p_A_lower = dff["p_A_mean"] - dff["p_A_std"]
 
         fig = make_subplots(
-            rows=4,
+            rows=5,
             cols=1,
             shared_xaxes=True,
             vertical_spacing=0.05,
@@ -976,7 +979,7 @@ def update_graph(hash_value):
         # fig.add_vline(x=100, line_dash="dash")
 
         fig.update_yaxes(
-            title_text="Controllability and inhibition",
+            title_text="C and I",
             range=[0, 1],
             row=2,
             col=1,
@@ -1080,7 +1083,42 @@ def update_graph(hash_value):
         fig.add_hline(y=0.5, row=4, col=1)
         # fig.add_vline(x=100, line_dash="dash")
 
-        fig.update_xaxes(title_text="Episode", row=4, col=1)
+        # --- Probability aggressive ---
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["p_A_mean"],
+                mode="lines",
+                name="Probability aggressive",
+                line=dict(color="magenta"),
+            ),
+            row=5,
+            col=1,
+        )
+
+        # fig.add_trace(
+        #     go.Scatter(
+        #         x=np.concatenate([dff["Step"], dff["Step"][::-1]]),
+        #         y=np.concatenate([p_A_upper, p_A_lower[::-1]]),
+        #         fill="toself",
+        #         fillcolor="rgba(255,0,255,0.2)",
+        #         line=dict(color="rgba(255,0,255,0)"),
+        #         hoverinfo="skip",
+        #         showlegend=False,
+        #     ),
+        #     row=5,
+        #     col=1,
+        # )
+
+        fig.update_yaxes(
+            title_text="Probability aggressive",
+            range=[0, 1],
+            row=5,
+            col=1,
+        )
+
+        fig.update_xaxes(title_text="Episode", row=5, col=1)
 
         return fig
 
@@ -1119,7 +1157,7 @@ def update_graph(hash_value):
              "=", environment_type),
         ]
 
-        cols_needed = ["Step", "V", "M_A", "M_S", "C", "v", "I"]
+        cols_needed = ["Step", "V", "M_A", "M_S", "C", "v", "I", "p_A"]
 
         # read only filtered rows and selected columns
         table = pq.read_table(
@@ -1132,8 +1170,6 @@ def update_graph(hash_value):
             filters=filters
         )
 
-        print(table)
-
         dff = (
             table.
             to_pandas()
@@ -1142,7 +1178,7 @@ def update_graph(hash_value):
         )
 
         fig = make_subplots(
-            rows=4,
+            rows=5,
             cols=1,
             shared_xaxes=True,
             vertical_spacing=0.05,
@@ -1190,7 +1226,7 @@ def update_graph(hash_value):
         )
 
         fig.update_yaxes(
-            title_text="Controllability and inhibition",
+            title_text="C and I",
             range=[0, 1],
             row=2,
             col=1,
@@ -1266,6 +1302,27 @@ def update_graph(hash_value):
         fig.add_hline(y=0.5, row=4, col=1)
         # fig.add_vline(x=100, line_dash="dash")
 
-        fig.update_xaxes(title_text="Episode", row=4, col=1)
+        # --- Probability aggressive ---
+
+        fig.add_trace(
+            go.Scatter(
+                x=dff["Step"],
+                y=dff["p_A"],
+                mode="lines",
+                name="Probability aggressive",
+                line=dict(color="magenta"),
+            ),
+            row=5,
+            col=1,
+        )
+
+        fig.update_yaxes(
+            title_text="Probability aggressive",
+            range=[0, 1],
+            row=5,
+            col=1,
+        )
+
+        fig.update_xaxes(title_text="Episode", row=5, col=1)
 
         return fig
