@@ -13,6 +13,7 @@ import json
 import base64
 import config
 import callbacks
+import shared_content
 
 page_prefix = "simulation"
 page_id = "3"
@@ -100,58 +101,8 @@ def layout(state_str: str = None, **_kwargs):
                       storage_type="memory"),
             html.Div([
                 html.P(children=description),
-                html.Table(
-                    [
-                        html.Tr([
-                            html.Th("Parameter", style={"padding": "0 12px"}),
-                            html.Th("Range", style={"padding": "0 12px"}),
-                            html.Th("Interpretation", style={
-                                    "padding": "0 12px"}),
-                        ], style={**config.toprule, **config.midrule}),
-                        html.Tr([
-                            html.Td("C", style={"padding": "0 12px"}),
-                            html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Perceived controllability of the environment",
-                                style={"padding": "0 12px"},
-                            ),
-                        ]),
-                        html.Tr([
-                            html.Td("η", style={"padding": "0 12px"}),
-                            html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td("Learning rate: how quickly value expectations update", style={
-                                    "padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("γ", style={"padding": "0 12px"}),
-                            html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td("Discount factor: weight given to future rewards", style={
-                                    "padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("λ_A", style={"padding": "0 12px"}),
-                            html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td("Affective inertia: higher values → slower emotion updates", style={
-                                    "padding": "0 12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("α", style={"padding": "0 12px"}),
-                            html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Relative weighting of prediction errors versus absolute rewards as affective inputs (1 ... only RPE)",
-                                style={"padding": "0 12px"},
-                            ),
-                        ]),
-                        html.Tr([
-                            html.Td("κ", style={"padding": "0 12px"}),
-                            html.Td("> 1", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Negativity bias: negative affective inputs are amplified relative to positive ones",
-                                style={"padding": "0 12px"},
-                            ),
-                        ], style=config.bottomrule),
-                    ],
-                    style=config.table_style,
+                shared_content.parameter_table(
+                    ["lambda_A", "C", "eta", "gamma", "alpha", "kappa"]
                 )
             ], style={"paddingBottom": "20px"}),
 
