@@ -11,7 +11,8 @@ app = Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     routing_callback_inputs={
         "state": State("main-url", "hash")
-    }
+    },
+    suppress_callback_exceptions=True,
 )
 
 app.server.config["PROPAGATE_EXCEPTIONS"] = True
