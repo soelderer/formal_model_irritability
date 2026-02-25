@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Output, Input
+from dash import html, dcc, callback, Output, Input, State, ALL
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -10,9 +10,17 @@ import gc
 import glob
 import re
 import os
+import json
+import base64
 import config
+import callbacks
 
-dash.register_page(__name__, path="/simulation2", name="Simulation 2")
+page_prefix = "simulation"
+page_id = "2"
+
+dash.register_page(
+    __name__, path=f"/{page_prefix + page_id}", name=f"Simulation {page_id}"
+)
 
 description = """
 Simulation 2 models a frustration-induction task in which participants learn
@@ -63,155 +71,227 @@ C_vals = meta_df["C_vals"].iloc[0]
 del meta_df
 gc.collect()
 
-# Dropdown options
-dropdown_options = [{"label": "Expected", "value": "expected"}] + [
-    {"label": f"Iteration {i}", "value": i} for i in iterations
-]
+defaults = {
+    "lambda_A": lambda_A_vals[0],
+    "eta": eta_vals[-1],
+    "gamma": gamma_vals[-1],
+    "C": C_vals[-1],
+    "iteration": "expected",
+}
 
 
-layout = [
-    html.H1(children="Simulation 2",
-            style={"textAlign": "center"}),
-    html.Div([
+def layout(state_str: str = None, **_kwargs):
+    iteration_vals = [{"label": "Expected", "value": "expected"}] + [
+        {"label": f"Iteration {i}", "value": i} for i in iterations
+    ]
+
+    # Decode the state from the hash
+    state = defaults | (json.loads(
+        base64.b64decode(state_str)) if state_str else {})
+
+    layout = [
+        html.H1(children="Simulation 2",
+                style={"textAlign": "center"}),
         html.Div([
-            html.P(children=description),
-            html.Table(
-                [
-                    html.Tr([
-                        html.Th("Parameter", style={"padding": "0 12px"}),
-                        html.Th("Range", style={"padding": "0 12px"}),
-                        html.Th("Interpretation", style={"padding": "0 12px"}),
-                    ], style={**config.toprule, **config.midrule}),
-                    html.Tr(
-                        [
-                            html.Td("C", style={"padding": "0 12px"}),
+            dcc.Store(id=f"{page_prefix + page_id}-store",
+                      storage_type="memory"),
+            html.Div([
+                html.P(children=description),
+                html.Table(
+                    [
+                        html.Tr([
+                            html.Th("Parameter", style={"padding": "0 12px"}),
+                            html.Th("Range", style={"padding": "0 12px"}),
+                            html.Th("Interpretation", style={
+                                    "padding": "0 12px"}),
+                        ], style={**config.toprule, **config.midrule}),
+                        html.Tr(
+                            [
+                                html.Td("C", style={"padding": "0 12px"}),
+                                html.Td("[0, 1]", style={"padding": "0 12px"}),
+                                html.Td(
+                                    "Perceived controllability of the environment",
+                                    style={"padding": "0 12px"},
+                                ),
+                            ]),
+                        html.Tr([
+                            html.Td("η", style={"padding": "0 12px"}),
                             html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Perceived controllability of the environment",
-                                style={"padding": "0 12px"},
-                            ),
+                            html.Td("Learning rate: how quickly value expectations update", style={
+                                    "padding": "0 12px"}),
                         ]),
-                    html.Tr([
-                        html.Td("η", style={"padding": "0 12px"}),
-                        html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Learning rate: how quickly value expectations update", style={
-                                "padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("γ", style={"padding": "0 12px"}),
-                        html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Discount factor: weight given to future rewards", style={
-                                "padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("λ_A", style={"padding": "0 12px"}),
-                        html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Affective inertia: higher values → slower emotion updates", style={
-                                "padding": "0 12px"}),
-                    ], style=config.bottomrule),
-                ],
-                style=config.table_style,
+                        html.Tr([
+                            html.Td("γ", style={"padding": "0 12px"}),
+                            html.Td("[0, 1]", style={"padding": "0 12px"}),
+                            html.Td("Discount factor: weight given to future rewards", style={
+                                    "padding": "0 12px"}),
+                        ]),
+                        html.Tr([
+                            html.Td("λ_A", style={"padding": "0 12px"}),
+                            html.Td("[0, 1]", style={"padding": "0 12px"}),
+                            html.Td("Affective inertia: higher values → slower emotion updates", style={
+                                    "padding": "0 12px"}),
+                        ], style=config.bottomrule),
+                    ],
+                    style=config.table_style,
+                )
+            ], style={"paddingBottom": "20px"}),
+
+            # ---------------------- SLIDERS ---------------------------------#
+
+            html.Div([
+                html.Div([
+                    html.Label("lambda_A", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(lambda_A_vals),
+                        max=max(lambda_A_vals),
+                        step=None,
+                        value=state.get("lambda_A"),
+                        marks={float(v): "" for v in lambda_A_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        dots=False,
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "lambda_A"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("C", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(C_vals),
+                        max=max(C_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("C"),
+                        marks={float(v): "" for v in C_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "C"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("eta", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(eta_vals),
+                        max=max(eta_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("eta"),
+                        marks={float(v): "" for v in eta_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "eta"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("gamma", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(gamma_vals),
+                        max=max(gamma_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("gamma"),
+                        marks={float(v): "" for v in gamma_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "gamma"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+            ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
+            html.Div([
+                dcc.Dropdown(
+                    id={
+                        "type": "control",
+                        "page": f"{page_prefix + page_id}",
+                        "name": "iteration",
+                    },
+                    options=iteration_vals,
+                    value=state.get("iteration"),
+                    clearable=False,
+                    style={"width": "200px"},
+                    persistence=True,
+                ),
+            ], style={"paddingTop": "20px"}),
+            html.Div([
+                dcc.Graph(id={
+                    "type": "graph",
+                    "name": "content",
+                    "page": f"{page_prefix + page_id}"
+                },
+                    config={"responsive": True},)
+            ], style={"width": "60%", "height": "80vh"},
             )
-        ], style={"paddingBottom": "20px"}),
-        html.Div([
-            html.Div([
-                html.Label("lambda_A", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(lambda_A_vals),
-                    max=max(lambda_A_vals),
-                    step=None,
-                    value=lambda_A_vals[0],
-                    marks={float(v): "" for v in lambda_A_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    dots=False,
-                    id="sim2-lambda_A-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("C", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(C_vals),
-                    max=max(C_vals),
-                    step=None,
-                    dots=False,
-                    value=C_vals[-1],
-                    marks={float(v): "" for v in C_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim2-C-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("eta", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(eta_vals),
-                    max=max(eta_vals),
-                    step=None,
-                    dots=False,
-                    value=eta_vals[-1],
-                    marks={float(v): "" for v in eta_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim2-eta-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("gamma", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(gamma_vals),
-                    max=max(gamma_vals),
-                    step=None,
-                    dots=False,
-                    value=gamma_vals[-1],
-                    marks={float(v): "" for v in gamma_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim2-gamma-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-        ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
-        html.Div([
-            dcc.Dropdown(
-                id="sim2-iteration-selector",
-                options=dropdown_options,
-                value="expected",
-                clearable=False,
-                style={"width": "200px"},
-                persistence=True,
-            ),
-        ], style={"paddingTop": "20px"}),
-        html.Div([
-            dcc.Graph(id="sim2-graph-content",
-                      config={"responsive": True},)
-        ], style={"width": "60%", "height": "80vh"},
-        )
-    ])
-]
+        ])
+    ]
+
+    return layout
 
 
 @callback(
-    Output("sim2-graph-content", "figure"),
-    Input("sim2-lambda_A-slider", "value"),
-    Input("sim2-eta-slider", "value"),
-    Input("sim2-gamma-slider", "value"),
-    Input("sim2-C-slider", "value"),
-    Input("sim2-iteration-selector", "value"),
+    Output(f"{page_prefix + page_id}-store", "data"),
+    Input("main-url", "hash"),
+    State(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=False,
 )
-def update_graph(lambda_A, eta, gamma, C, selected_iteration):
-    if selected_iteration == "expected":
+def load_hash_to_store(hash_value, current_store):
+    return callbacks._load_hash_to_store_generic(
+        hash_value, current_store, defaults
+    )
+
+
+@callback(
+    Output({"type": "control", "page": f"{page_prefix + page_id}",
+            "name": ALL}, "value"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+)
+def sync_sliders(store):
+    return callbacks._sync_sliders_generic(store)
+
+
+@callback(
+    Output({"type": "graph", "name": "content",
+            "page": f"{page_prefix + page_id}"},
+           "figure"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=True,
+)
+def update_graph(store):
+    lambda_A, eta, gamma, C, iteration = (store[k] for k in [
+        "lambda_A", "eta", "gamma", "C", "iteration"
+    ])
+
+    if iteration == "expected":
         filters = [
             ("lambda_A", "=", lambda_A),
             ("eta", "=", eta),
@@ -313,7 +393,7 @@ def update_graph(lambda_A, eta, gamma, C, selected_iteration):
             os.path.join(
                 config.DATA_DIR,
                 "002_fnr_value_learning",
-                f"002_fnr_value_learning_{selected_iteration}.parquet"
+                f"002_fnr_value_learning_{iteration}.parquet"
             ),
             columns=cols_needed,
             filters=filters

@@ -1,8 +1,5 @@
 import dash
-from dash import ALL, MATCH, html, dcc, callback, Output, Input, State
-from dash import callback_context as ctx
-from dash.exceptions import PreventUpdate
-import plotly.express as px
+from dash import ALL, html, dcc, callback, Output, Input, State
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
@@ -15,6 +12,7 @@ import os
 import json
 import base64
 import config
+import callbacks
 
 page_prefix = "simulation"
 page_id = "200"
@@ -310,7 +308,7 @@ def layout(state_str: str = None, **_kwargs):
                         dots=False,
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "lambda_A",
                         },
                         persistence=True,
@@ -336,7 +334,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "eta"
                         },
                         persistence=True,
@@ -362,7 +360,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "gamma"
                         },
                         persistence=False,
@@ -388,7 +386,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "alpha",
                         },
                         persistence=True,
@@ -414,7 +412,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "kappa",
                         },
                         persistence=True,
@@ -440,7 +438,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "C_start",
                         },
                         persistence=True,
@@ -466,7 +464,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "C_end",
                         },
                         persistence=True,
@@ -492,7 +490,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "lambda_C",
                         },
                         persistence=True,
@@ -518,7 +516,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "midpoint_C",
                         },
                         persistence=True,
@@ -545,7 +543,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "I_start",
                         },
                         persistence=True,
@@ -571,7 +569,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "I_end",
                         },
                         persistence=True,
@@ -597,7 +595,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "lambda_I"
                         },
                         persistence=True,
@@ -623,7 +621,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "midpoint_I"
                         },
                         persistence=True,
@@ -649,7 +647,7 @@ def layout(state_str: str = None, **_kwargs):
                         updatemode="drag",
                         id={
                             "type": "control",
-                            "page": "simulation200",
+                            "page": f"{page_prefix + page_id}",
                             "name": "w_v_A"
                         },
                         persistence=True,
@@ -663,7 +661,7 @@ def layout(state_str: str = None, **_kwargs):
                 dcc.Dropdown(
                     id={
                         "type": "control",
-                        "page": "simulation200",
+                        "page": f"{page_prefix + page_id}",
                         "name": "iteration",
                     },
                     options=iteration_vals,
@@ -676,7 +674,7 @@ def layout(state_str: str = None, **_kwargs):
                 dcc.Dropdown(
                     id={
                         "type": "control",
-                        "page": "simulation200",
+                        "page": f"{page_prefix + page_id}",
                         "name": "environment_type",
                     },
                     options=environment_type_vals,
@@ -691,7 +689,7 @@ def layout(state_str: str = None, **_kwargs):
                 dcc.Graph(
                     id={
                         "type": "graph",
-                        "page": "simulation200",
+                        "page": f"{page_prefix + page_id}",
                         "name": "content"
                     },
                     config={"responsive": True})
@@ -703,126 +701,34 @@ def layout(state_str: str = None, **_kwargs):
 
 
 @callback(
-    Output("main-url", "hash", allow_duplicate=True),
-    Input("main-url", "pathname"),
-    Input({"type": "control", "page": ALL, "name": ALL}, "value"),
-    State({"type": "control", "page": ALL, "name": ALL}, "id"),
-    State("main-url", "hash"),
-    prevent_initial_call="initial_duplicate",
-)
-def update_hash(pathname, values, ids, current_hash):
-    """Update the URL hash with the current app state."""
-
-    page = pathname.strip("/")
-
-    if not page:
-        print("update_hash prevents update because no inputs at home page!")
-        raise PreventUpdate
-
-    print(f"update_hash: at page '{page}'")
-
-    # only keep controls of current page
-    state = {
-        comp_id["name"]: value
-        for comp_id, value in zip(ids, values)
-        if comp_id["page"] == page
-    }
-
-    if not state:
-        print("update_hash prevents Update because state is empty!")
-        raise PreventUpdate
-
-    print(f"update_hash: encoding state: {state}")
-
-    new_hash = "#" + base64.b64encode(json.dumps(state).encode()).decode()
-
-    if new_hash == current_hash:
-        print("update_hash prevents Update because new_has == current_hash!")
-        raise PreventUpdate
-
-    return new_hash
-
-
-@callback(
     Output(f"{page_prefix + page_id}-store", "data"),
     Input("main-url", "hash"),
     State(f"{page_prefix + page_id}-store", "data"),
     prevent_initial_call=False,
 )
-def load_hash_to_store(
-    hash_value,
-    current_store,
-):
-    """
-    Restore sliders/selectors from URL hash if present.
-    If no hash or invalid, fallback to persisted values.
-    """
-
-    if not hash_value:
-        # No hash → use persisted values
-        print("load_hash_to_store() prevents Update! no hash")
-        raise PreventUpdate
-
-    try:
-        decoded = json.loads(base64.b64decode(hash_value[1:]))
-    except Exception:
-        # Invalid hash → fallback to persisted values
-        print("load_hash_to_store() prevents Update! invalid hash")
-        raise PreventUpdate
-
-    print(f"load_hash_to_store decoded: {decoded}")
-
-    new_store = {**defaults, **decoded}
-
-    if new_store == current_store:
-        raise dash.exceptions.PreventUpdate
-    return new_store
+def load_hash_to_store(hash_value, current_store):
+    return callbacks._load_hash_to_store_generic(
+        hash_value, current_store, defaults
+    )
 
 
 @callback(
     Output({"type": "control", "page": f"{page_prefix + page_id}",
-           "name": ALL}, "value"),
+            "name": ALL}, "value"),
     Input(f"{page_prefix + page_id}-store", "data"),
 )
 def sync_sliders(store):
-    print(f"sync_sliders() store: {store}")
-
-    if not store:
-        print("sync_sliders() prevents update because no store!")
-        raise dash.exceptions.PreventUpdate
-
-    # Make sure the order is correct
-    # names = [item["id"]["name"] for item in ctx.outputs_list]
-    # print(names)
-
-    return [
-        store["lambda_A"],
-        store["eta"],
-        store["gamma"],
-        store["alpha"],
-        store["kappa"],
-        store["C_start"],
-        store["C_end"],
-        store["lambda_C"],
-        store["midpoint_C"],
-        store["I_start"],
-        store["I_end"],
-        store["lambda_I"],
-        store["midpoint_I"],
-        store["w_v_A"],
-        store["iteration"],
-        store["environment_type"],
-    ]
+    return callbacks._sync_sliders_generic(store)
 
 
 @callback(
-    Output({"type": "graph", "name": "content", "page": "simulation200"},
+    Output({"type": "graph", "name": "content",
+            "page": f"{page_prefix + page_id}"},
            "figure"),
     Input(f"{page_prefix + page_id}-store", "data"),
     prevent_initial_call=True,
 )
 def update_graph(store):
-
     lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C, midpoint_C, \
         I_start, I_end, lambda_I, midpoint_I, w_v_A, iteration, \
         environment_type = (

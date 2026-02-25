@@ -1,12 +1,21 @@
 import dash
-from dash import html, dcc, callback, Output, Input
+from dash import html, dcc, callback, Output, Input, State, ALL
 import plotly.express as px
 import pandas as pd
 import numpy as np
-import config
 import os
+import gc
+import json
+import base64
+import config
+import callbacks
 
-dash.register_page(__name__, path="/simulation1", name="Simulation 1")
+page_prefix = "simulation"
+page_id = "1"
+
+dash.register_page(
+    __name__, path=f"/{page_prefix + page_id}", name=f"Simulation {page_id}"
+)
 
 description = """
 Simulation 1 illustrates a minimal model of irritability using a single agent
@@ -33,124 +42,188 @@ theta_vals = meta_df["theta_vals"].iloc[0]
 C_vals = meta_df["C_vals"].iloc[0]
 lambda_A_vals = meta_df["lambda_A_vals"].iloc[0]
 
-layout = [
-    html.H1(children="Simulation 1",
-            style={"textAlign": "center"}),
-    html.Div([
+del meta_df
+gc.collect()
+
+defaults = {
+    "theta_A_w1": theta_vals[0],
+    "C": C_vals[-1],
+    "lambda_A": lambda_A_vals[0]
+}
+
+
+def layout(state_str: str = None, **_kwargs):
+    # Decode the state from the hash
+    state = defaults | (json.loads(
+        base64.b64decode(state_str)) if state_str else {})
+
+    layout = [
+        html.H1(children="Simulation 1",
+                style={"textAlign": "center"}),
         html.Div([
-            html.P(children=description),
-            html.Table(
-                [
-                    html.Tr(
-                        [
-                            html.Th("Parameter", style={"padding": "0 12px"}),
-                            html.Th("Range", style={"padding": "0 12px"}),
-                            html.Th("Interpretation", style={
-                                    "padding": "0 12px"}),
-                        ],
-                        style={**config.toprule, **config.midrule},
-                    ),
-                    html.Tr(
-                        [
-                            html.Td("θ_A_w1", style={"padding": "0 12px"}),
-                            html.Td("ℝ", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Reactive aggression gain: logit-linear scaling of aggressive behavior as a function of current anger/frustration",
-                                style={"padding": "0 12px"},
-                            ),
-                        ]
-                    ),
-                    html.Tr(
-                        [
-                            html.Td("C", style={"padding": "0 12px"}),
+            dcc.Store(id=f"{page_prefix + page_id}-store",
+                      storage_type="memory"),
+            html.Div([
+                html.P(children=description),
+                html.Table(
+                    [
+                        html.Tr(
+                            [
+                                html.Th("Parameter", style={
+                                        "padding": "0 12px"}),
+                                html.Th("Range", style={"padding": "0 12px"}),
+                                html.Th("Interpretation", style={
+                                        "padding": "0 12px"}),
+                            ],
+                            style={**config.toprule, **config.midrule},
+                        ),
+                        html.Tr(
+                            [
+                                html.Td("θ_A_w1", style={"padding": "0 12px"}),
+                                html.Td("ℝ", style={"padding": "0 12px"}),
+                                html.Td(
+                                    "Reactive aggression gain: logit-linear scaling of aggressive behavior as a function of current anger/frustration",
+                                    style={"padding": "0 12px"},
+                                ),
+                            ]
+                        ),
+                        html.Tr(
+                            [
+                                html.Td("C", style={"padding": "0 12px"}),
+                                html.Td("[0, 1]", style={"padding": "0 12px"}),
+                                html.Td(
+                                    "Perceived controllability of the environment",
+                                    style={"padding": "0 12px"},
+                                ),
+                            ],
+                        ),
+                        html.Tr([
+                            html.Td("λ_A", style={"padding": "0 12px"}),
                             html.Td("[0, 1]", style={"padding": "0 12px"}),
-                            html.Td(
-                                "Perceived controllability of the environment",
-                                style={"padding": "0 12px"},
-                            ),
-                        ],
+                            html.Td("Affective inertia: higher values → slower emotion updates", style={
+                                    "padding": "0 12px"}),
+                        ], style=config.bottomrule),
+                    ],
+                    style=config.table_style,
+                )
+            ], style={"paddingBottom": "20px"}),
+            html.Div([
+                html.Div([
+                    html.Label("theta_A_w1", style={
+                        "textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(theta_vals),
+                        max=max(theta_vals),
+                        step=None,
+                        value=state.get("theta_A_w1"),
+                        marks={int(v): "" for v in theta_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        dots=False,
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "theta_A_w1"
+                        },
+                        persistence=True,
                     ),
-                    html.Tr([
-                        html.Td("λ_A", style={"padding": "0 12px"}),
-                        html.Td("[0, 1]", style={"padding": "0 12px"}),
-                        html.Td("Affective inertia: higher values → slower emotion updates", style={
-                                "padding": "0 12px"}),
-                    ], style=config.bottomrule),
-                ],
-                style=config.table_style,
-            )
-        ], style={"paddingBottom": "20px"}),
-        html.Div([
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("C", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(C_vals),
+                        max=max(C_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("C"),
+                        marks={float(v): "" for v in C_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "C"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("lambda_A", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(lambda_A_vals),
+                        max=max(lambda_A_vals),
+                        step=None,
+                        value=state.get("lambda_A"),
+                        marks={float(v): "" for v in lambda_A_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        dots=False,
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "lambda_A"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+            ], style={"display": "flex", "align-items": "center", "gap": "10px",
+                      "padding-bottom": "40px"}),
             html.Div([
-                html.Label("theta_A_w1", style={
-                    "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(theta_vals),
-                    max=max(theta_vals),
-                    step=None,
-                    value=theta_vals[0],
-                    marks={int(v): "" for v in theta_vals},
-                    tooltip={"always_visible": True,
-                             "placement": "bottom"},
-                    updatemode="drag",
-                    dots=False,
-                    id="sim1-theta_A_w1-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("C", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(C_vals),
-                    max=max(C_vals),
-                    step=None,
-                    dots=False,
-                    value=C_vals[-1],
-                    marks={float(v): "" for v in C_vals},
-                    tooltip={"always_visible": True,
-                             "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim1-C-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("lambda_A", style={"textAlign": "center"}),
-                dcc.Slider(
-                    min=min(lambda_A_vals),
-                    max=max(lambda_A_vals),
-                    step=None,
-                    value=lambda_A_vals[0],
-                    marks={float(v): "" for v in lambda_A_vals},
-                    tooltip={"always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    dots=False,
-                    id="sim1-lambda_A-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-        ], style={"display": "flex", "align-items": "center", "gap": "10px",
-                  "padding-bottom": "40px"}),
-        html.Div([
-            dcc.Graph(id='sim1-graph-content')
-        ], style={"width": "45%"})
-    ])
-]
+                dcc.Graph(id={
+                    "type": "graph",
+                    "page": f"{page_prefix + page_id}",
+                    "name": "content"
+                })
+            ], style={"width": "45%"})
+        ])
+    ]
+
+    return layout
 
 
 @callback(
-    Output("sim1-graph-content", "figure"),
-    Input("sim1-theta_A_w1-slider", "value"),
-    Input("sim1-C-slider", "value"),
-    Input("sim1-lambda_A-slider", "value")
+    Output(f"{page_prefix + page_id}-store", "data"),
+    Input("main-url", "hash"),
+    State(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=False,
 )
-def update_graph(theta_A_w1, C, lambda_A):
+def load_hash_to_store(hash_value, current_store):
+    return callbacks._load_hash_to_store_generic(
+        hash_value, current_store, defaults
+    )
+
+
+@callback(
+    Output({"type": "control", "page": f"{page_prefix + page_id}",
+            "name": ALL}, "value"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+)
+def sync_sliders(store):
+    return callbacks._sync_sliders_generic(store)
+
+
+@callback(
+    Output({"type": "graph", "name": "content",
+            "page": f"{page_prefix + page_id}"},
+           "figure"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=True,
+)
+def update_graph(store):
+    theta_A_w1, C, lambda_A = (store[k]
+                               for k in ["theta_A_w1", "C", "lambda_A"])
+
+    print("updating graph")
+
     df = pd.read_parquet(
         os.path.join(
             config.DATA_DIR,

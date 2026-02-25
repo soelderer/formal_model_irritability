@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import webbrowser
 import threading
 import config
+import callbacks
 
 app = Dash(
     __name__,
