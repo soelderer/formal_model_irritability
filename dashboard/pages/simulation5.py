@@ -212,6 +212,9 @@ def layout(state_str: str = None, **_kwargs):
                     style=config.table_style,
                 )
             ], style={"paddingBottom": "20px"}),
+
+            # ---------------------- SLIDERS ---------------------------------#
+
             html.Div([
                 html.Div([
                     html.Label("lambda_A", style={"textAlign": "center"}),
@@ -683,7 +686,7 @@ def update_graph(store):
             ("lambda_C",
              "=", lambda_C),
             ("midpoint",
-             "=", midpoint),
+             "=", midpoint_C),
             ("w_v_A",
              "=", w_v_A),
         ]

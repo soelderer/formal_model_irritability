@@ -190,6 +190,9 @@ def layout(state_str: str = None, **_kwargs):
                     style=config.table_style,
                 )
             ], style={"paddingBottom": "20px"}),
+
+            # ---------------------- SLIDERS ---------------------------------#
+
             html.Div([
                 html.Div([
                     html.Label("lambda_A", style={"textAlign": "center"}),
