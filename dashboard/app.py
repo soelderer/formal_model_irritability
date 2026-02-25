@@ -62,12 +62,14 @@ app.layout = html.Div([
     content,
 ])
 
+
 # Expose the Flask server for Gunicorn
 server = app.server
 
+
 if __name__ == "__main__":
     app.run(
-        debug=False,
+        debug=True,
         host="127.0.0.1",
         port=8050,
     )

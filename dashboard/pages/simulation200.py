@@ -1,5 +1,5 @@
 import dash
-from dash import ALL, html, dcc, callback, Output, Input, State
+from dash import ALL, MATCH, html, dcc, callback, Output, Input, State
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -15,8 +15,11 @@ import json
 import base64
 import config
 
+page_prefix = "simulation"
+page_id = "200"
+
 dash.register_page(
-    __name__, path="/simulation200", name="Simulation 200"
+    __name__, path=f"/{page_prefix + page_id}", name=f"Simulation {page_id}"
 )
 
 description = """
@@ -132,6 +135,8 @@ def layout(state_str: str = None, **_kwargs):
         html.H1(children="Simulation 200",
                 style={"textAlign": "center"}),
         html.Div([
+            dcc.Store(id=f"{page_prefix + page_id}-store",
+                      storage_type="memory"),
             html.Div([
                 html.P(
                     children=description
@@ -302,7 +307,11 @@ def layout(state_str: str = None, **_kwargs):
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
                         dots=False,
-                        id="sim200-lambda_A-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "lambda_A",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -324,7 +333,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-eta-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "eta"
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -346,7 +359,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-gamma-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "gamma"
+                        },
                         persistence=False,
                     ),
                 ], style={"width": "100%",
@@ -368,7 +385,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-alpha-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "alpha",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -390,7 +411,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-kappa-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "kappa",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -412,7 +437,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-C_start-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "C_start",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -434,7 +463,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-C_end-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "C_end",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -456,7 +489,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-lambda_C-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "lambda_C",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -478,7 +515,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-midpoint_C-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "midpoint_C",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -501,7 +542,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-I_start-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "I_start",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -523,7 +568,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-I_end-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "I_end",
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -545,7 +594,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-lambda_I-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "lambda_I"
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -567,7 +620,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-midpoint_I-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "midpoint_I"
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -589,7 +646,11 @@ def layout(state_str: str = None, **_kwargs):
                         tooltip={
                             "always_visible": True, "placement": "bottom"},
                         updatemode="drag",
-                        id="sim200-w_v_A-slider",
+                        id={
+                            "type": "control",
+                            "page": "simulation200",
+                            "name": "w_v_A"
+                        },
                         persistence=True,
                     ),
                 ], style={"width": "100%",
@@ -599,7 +660,11 @@ def layout(state_str: str = None, **_kwargs):
                       "align-items": "center", "gap": "10px"}),
             html.Div([
                 dcc.Dropdown(
-                    id="sim200-iteration-selector",
+                    id={
+                        "type": "control",
+                        "page": "simulation200",
+                        "name": "iteration-selector",
+                    },
                     options=iteration_vals,
                     value=state.get("iteration"),
                     clearable=False,
@@ -608,7 +673,11 @@ def layout(state_str: str = None, **_kwargs):
                     persistence=True,
                 ),
                 dcc.Dropdown(
-                    id="sim200-environment_type-selector",
+                    id={
+                        "type": "control",
+                        "page": "simulation200",
+                        "name": "environment_type-selector",
+                    },
                     options=environment_type_vals,
                     value=state.get("environment_type"),
                     clearable=False,
@@ -619,7 +688,11 @@ def layout(state_str: str = None, **_kwargs):
             ], style={"display": "flex", "gap": "12px", "paddingTop": "20px"}),
             html.Div([
                 dcc.Graph(
-                    id="sim200-graph-content",
+                    id={
+                        "type": "graph",
+                        "page": "simulation200",
+                        "name": "content"
+                    },
                     config={"responsive": True})
             ], style={"width": "60%", "height": "80vh"})
         ])
@@ -630,121 +703,70 @@ def layout(state_str: str = None, **_kwargs):
 
 @callback(
     Output("main-url", "hash", allow_duplicate=True),
-    Input("main-url", "href"),
-    Input("sim200-lambda_A-slider", "value"),
-    Input("sim200-eta-slider", "value"),
-    Input("sim200-gamma-slider", "value"),
-    Input("sim200-alpha-slider", "value"),
-    Input("sim200-kappa-slider", "value"),
-    Input("sim200-C_start-slider", "value"),
-    Input("sim200-C_end-slider", "value"),
-    Input("sim200-lambda_C-slider", "value"),
-    Input("sim200-midpoint_C-slider", "value"),
-    Input("sim200-I_start-slider", "value"),
-    Input("sim200-I_end-slider", "value"),
-    Input("sim200-lambda_I-slider", "value"),
-    Input("sim200-midpoint_I-slider", "value"),
-    Input("sim200-w_v_A-slider", "value"),
-    Input("sim200-iteration-selector", "value"),
-    Input("sim200-environment_type-selector", "value"),
+    Input("main-url", "pathname"),
+    Input({"type": "control", "page": ALL, "name": ALL}, "value"),
+    State({"type": "control", "page": ALL, "name": ALL}, "id"),
     State("main-url", "hash"),
     prevent_initial_call="initial_duplicate",
 )
-def update_hash(_href, lambda_A, eta, gamma, alpha, kappa,
-                C_start, C_end, lambda_C, midpoint_C,
-                I_start, I_end, lambda_I, midpoint_I,
-                w_v_A, iteration, environment_type,
-                current_hash):
+def update_hash(pathname, values, ids, current_hash):
     """Update the URL hash with the current app state."""
 
+    page = pathname.strip("/")
+
+    if not page:
+        print("update_hash prevents update because no inputs at home page!")
+        raise PreventUpdate
+
+    print(f"update_hash: at page '{page}'")
+
+    # only keep controls of current page
     state = {
-        "lambda_A": lambda_A,
-        "eta": eta,
-        "gamma": gamma,
-        "alpha": alpha,
-        "kappa": kappa,
-        "C_start": C_start,
-        "C_end": C_end,
-        "lambda_C": lambda_C,
-        "midpoint_C": midpoint_C,
-        "I_start": I_start,
-        "I_end": I_end,
-        "lambda_I": lambda_I,
-        "midpoint_I": midpoint_I,
-        "w_v_A": w_v_A,
-        "iteration": iteration,
-        "environment_type": environment_type,
+        comp_id["name"]: value
+        for comp_id, value in zip(ids, values)
+        if comp_id["page"] == page
     }
 
-    print("update_hash()")
+    if not state:
+        print("update_hash prevents Update because state is empty!")
+        raise PreventUpdate
+
+    print(f"update_hash: encoding state: {state}")
 
     new_hash = "#" + base64.b64encode(json.dumps(state).encode()).decode()
 
     if new_hash == current_hash:
-        print("update_hash prevents Update!")
+        print("update_hash prevents Update because new_has == current_hash!")
         raise PreventUpdate
 
     return new_hash
 
 
 @callback(
-    [
-        Output("sim200-lambda_A-slider", "value"),
-        Output("sim200-eta-slider", "value"),
-        Output("sim200-gamma-slider", "value"),
-        Output("sim200-alpha-slider", "value"),
-        Output("sim200-kappa-slider", "value"),
-        Output("sim200-C_start-slider", "value"),
-        Output("sim200-C_end-slider", "value"),
-        Output("sim200-lambda_C-slider", "value"),
-        Output("sim200-midpoint_C-slider", "value"),
-        Output("sim200-I_start-slider", "value"),
-        Output("sim200-I_end-slider", "value"),
-        Output("sim200-lambda_I-slider", "value"),
-        Output("sim200-midpoint_I-slider", "value"),
-        Output("sim200-w_v_A-slider", "value"),
-        Output("sim200-iteration-selector", "value"),
-        Output("sim200-environment_type-selector", "value"),
-    ],
+    Output({"type": "control", "page": ALL, "name": ALL}, "value"),
     Input("main-url", "hash"),
-    [
-        State("sim200-lambda_A-slider", "value"),
-        State("sim200-eta-slider", "value"),
-        State("sim200-gamma-slider", "value"),
-        State("sim200-alpha-slider", "value"),
-        State("sim200-kappa-slider", "value"),
-        State("sim200-C_start-slider", "value"),
-        State("sim200-C_end-slider", "value"),
-        State("sim200-lambda_C-slider", "value"),
-        State("sim200-midpoint_C-slider", "value"),
-        State("sim200-I_start-slider", "value"),
-        State("sim200-I_end-slider", "value"),
-        State("sim200-lambda_I-slider", "value"),
-        State("sim200-midpoint_I-slider", "value"),
-        State("sim200-w_v_A-slider", "value"),
-        State("sim200-iteration-selector", "value"),
-        State("sim200-environment_type-selector", "value"),
-    ],
+    State("main-url", "pathname"),
+    State({"type": "control", "page": ALL, "name": ALL}, "id"),
+    State({"type": "control", "page": ALL, "name": ALL}, "value"),
     prevent_initial_call=False,
 )
 def load_from_hash(
     hash_value,
-    current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
-    current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
-    current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
-    current_w_v_A, current_iteration, current_environment_type,
+    pathname,
+    ids,
+    current_values
 ):
     """
     Restore sliders/selectors from URL hash if present.
     If no hash or invalid, fallback to persisted values.
     """
-    import base64
-    import json
 
     if not hash_value:
         # No hash → use persisted values
         print("load_from_hash() prevents Update! no hash")
         raise PreventUpdate
+
+    page = pathname.strip("/")
 
     try:
         state = json.loads(base64.b64decode(hash_value[1:]))
@@ -753,69 +775,25 @@ def load_from_hash(
         print("load_from_hash() prevents Update! invalid hash")
         raise PreventUpdate
 
-    new_values = [
-        state.get(key, current)
-        for key, current in zip(
-            [
-                "lambda_A", "eta", "gamma", "alpha", "kappa",
-                "C_start", "C_end", "lambda_C", "midpoint_C",
-                "I_start", "I_end", "lambda_I", "midpoint_I",
-                "w_v_A", "iteration", "environment_type",
-            ],
-            [
-                current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
-                current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
-                current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
-                current_w_v_A, current_iteration, current_environment_type,
-            ]
-        )
-    ]
+    print(f"load_from_hash state: {state}")
 
-    # Check which ones differ
-    current_values = [
-        current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
-        current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
-        current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
-        current_w_v_A, current_iteration, current_environment_type,
-    ]
+    new_values = []
 
-    keys = [
-        "lambda_A", "eta", "gamma", "alpha", "kappa",
-        "C_start", "C_end", "lambda_C", "midpoint_C",
-        "I_start", "I_end", "lambda_I", "midpoint_I",
-        "w_v_A", "iteration", "environment_type",
-    ]
+    for comp_id, current in zip(ids, current_values):
 
-    diffs = []
-    import math
-    for k, old, new in zip(keys, current_values, new_values):
-        if isinstance(old, float) and isinstance(new, float):
-            if not math.isclose(old, new, rel_tol=1e-9):
-                diffs.append((k, old, new))
-        else:
-            if old != new:
-                diffs.append((k, old, new))
+        if comp_id["page"] != page:
+            new_values.append(current)
+            continue
 
-    if diffs:
-        print("Values changed:", diffs)
-
-    # Only update sliders if anything changed
-    if new_values == [
-        current_lambda_A, current_eta, current_gamma, current_alpha, current_kappa,
-        current_C_start, current_C_end, current_lambda_C, current_midpoint_C,
-        current_I_start, current_I_end, current_lambda_I, current_midpoint_I,
-        current_w_v_A, current_iteration, current_environment_type,
-    ]:
-        print("load_from_hash() prevents Update! no values changed")
-        raise PreventUpdate
-
-    print("load_from_hash() executed")
+        name = comp_id["name"]
+        new_values.append(state.get(name, current))
 
     return new_values
 
 
 @callback(
-    Output("sim200-graph-content", "figure"),
+    Output({"type": "graph", "name": "content", "page": "simulation200"},
+           "figure"),
     Input("main-url", "hash"),
     prevent_initial_call=True,
 )
