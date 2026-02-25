@@ -1,6 +1,5 @@
 import dash
-from dash import html, dcc, callback, Output, Input
-import plotly.express as px
+from dash import html, dcc, callback, Output, Input, State, ALL
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
@@ -10,10 +9,17 @@ import gc
 import glob
 import re
 import os
+import json
+import base64
 import config
+import callbacks
+
+page_prefix = "simulation"
+page_id = "4"
 
 dash.register_page(
-    __name__, path="/simulation4", name="Simulation 4")
+    __name__, path=f"/{page_prefix + page_id}", name=f"Simulation {page_id}"
+)
 
 description = """
 In Simulation 4, we introduced sadness as a negative emotion that emerges when
@@ -64,308 +70,354 @@ gamma_vals = meta_df["gamma_vals"].iloc[0]
 alpha_vals = meta_df["alpha_vals"].iloc[0]
 kappa_vals = meta_df["kappa_vals"].iloc[0]
 lambda_C_vals = meta_df["lambda_C_vals"].iloc[0]
-midpoint_vals = meta_df["midpoint_vals"].iloc[0]
+midpoint_C_vals = meta_df["midpoint_vals"].iloc[0]
 
 del meta_df
 gc.collect()
 
-# Dropdown options
-dropdown_options = [{"label": "Expected", "value": "expected"}] + [
-    {"label": f"Iteration {i}", "value": i} for i in iterations
-]
+defaults = {
+    "lambda_A": lambda_A_vals[0],
+    "eta": eta_vals[-1],
+    "gamma": gamma_vals[-1],
+    "alpha": alpha_vals[-1],
+    "kappa": kappa_vals[-1],
+    "lambda_C": lambda_C_vals[-1],
+    "midpoint_C": midpoint_C_vals[-1],
+    "iteration": "expected",
+}
 
 
-layout = [
-    html.H1(children="Simulation 4",
-            style={"textAlign": "center"}),
-    html.Div([
+def layout(state_str: str = None, **_kwargs):
+    iteration_vals = [{"label": "Expected", "value": "expected"}] + [
+        {"label": f"Iteration {i}", "value": i} for i in iterations
+    ]
+
+    # Decode the state from the hash
+    state = defaults | (json.loads(
+        base64.b64decode(state_str)) if state_str else {})
+
+    layout = [
+        html.H1(children="Simulation 4",
+                style={"textAlign": "center"}),
         html.Div([
-            html.P(
-                children=description
-            ),
-            html.Table(
-                [
-                    html.Tr([
-                        html.Th("Parameter", style={
-                                "padding": "0 12px"}),
-                        html.Th("Range", style={
-                                "padding": "0 12px"}),
-                        html.Th("Interpretation", style={
-                                "padding": "0 12px"}),
-                    ], style={**config.toprule, **config.midrule}),
-                    html.Tr([
-                        html.Td("η", style={
-                                "padding": "0 12px"}),
-                        html.Td("[0, 1]", style={
-                                "padding": "0 12px"}),
-                        html.Td(
-                            ("Learning rate: how quickly value "
-                             "expectations update"),
-                            style={"padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("γ", style={
-                                "padding": "0 12px"}),
-                        html.Td("[0, 1]", style={
-                                "padding": "0 12px"}),
-                        html.Td(("Discount factor: weight given to "
-                                 "future rewards"),
+            dcc.Store(id=f"{page_prefix + page_id}-store",
+                      storage_type="memory"),
+            html.Div([
+                html.P(
+                    children=description
+                ),
+                html.Table(
+                    [
+                        html.Tr([
+                            html.Th("Parameter", style={
+                                    "padding": "0 12px"}),
+                            html.Th("Range", style={
+                                    "padding": "0 12px"}),
+                            html.Th("Interpretation", style={
+                                    "padding": "0 12px"}),
+                        ], style={**config.toprule, **config.midrule}),
+                        html.Tr([
+                            html.Td("η", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0, 1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(
+                                ("Learning rate: how quickly value "
+                                 "expectations update"),
                                 style={"padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("λ_A", style={
-                                "padding": "0 12px"}),
-                        html.Td("[0, 1]", style={
-                                "padding": "0 12px"}),
-                        html.Td(("Affective inertia: higher values → "
-                                 "slower emotion updates"),
-                                style={"padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("α", style={
-                                "padding": "0 12px"}),
-                        html.Td("[0, 1]", style={
-                                "padding": "0 12px"}),
-                        html.Td(("Relative weighting of prediction errors "
-                                 "versus absolute rewards as affective inputs "
-                                 "(1 ... only RPE)"),
-                                style={"padding": "0 12px"}),
-                    ]),
-                    html.Tr([
-                        html.Td("κ", style={
-                                "padding": "0 12px"}),
-                        html.Td("> 1", style={
-                                "padding": "0 12px"}),
-                        html.Td((
-                            "Negativity bias: negative affective inputs are "
-                            "amplified relative to positive ones"),
-                            style={"padding": "0 12px"},),
-                    ]),
-                    html.Tr([
-                        html.Td("λ_C", style={
-                                "padding": "0 12px"}),
-                        html.Td("[0,1]", style={
-                                "padding": "0 12px"}),
-                        html.Td((
-                            "Controllability learning rate: speed at which "
-                            "perceived controllability declines across "
-                            "trials in the uncontrollable block"),
-                            style={"padding": "0 12px"},),
-                    ]),
-                    html.Tr([
-                        html.Td("midpoint", style={
-                                "padding": "0 12px"}),
-                        html.Td("[100,200]", style={
-                                "padding": "0 12px"}),
-                        html.Td((
-                            "Trial number at which C reaches 50% "
-                            "(inflection point of the decay)"),
-                            style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("γ", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0, 1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("Discount factor: weight given to "
+                                    "future rewards"),
+                                    style={"padding": "0 12px"}),
+                        ]),
+                        html.Tr([
+                            html.Td("λ_A", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0, 1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("Affective inertia: higher values → "
+                                    "slower emotion updates"),
+                                    style={"padding": "0 12px"}),
+                        ]),
+                        html.Tr([
+                            html.Td("α", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0, 1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td(("Relative weighting of prediction errors "
+                                    "versus absolute rewards as affective inputs "
+                                     "(1 ... only RPE)"),
+                                    style={"padding": "0 12px"}),
+                        ]),
+                        html.Tr([
+                            html.Td("κ", style={
+                                    "padding": "0 12px"}),
+                            html.Td("> 1", style={
+                                    "padding": "0 12px"}),
+                            html.Td((
+                                "Negativity bias: negative affective inputs are "
+                                "amplified relative to positive ones"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("λ_C", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[0,1]", style={
+                                    "padding": "0 12px"}),
+                            html.Td((
+                                "Controllability learning rate: speed at which "
+                                "perceived controllability declines across "
+                                "trials in the uncontrollable block"),
+                                style={"padding": "0 12px"},),
+                        ]),
+                        html.Tr([
+                            html.Td("midpoint", style={
+                                    "padding": "0 12px"}),
+                            html.Td("[100,200]", style={
+                                    "padding": "0 12px"}),
+                            html.Td((
+                                "Trial number at which C reaches 50% "
+                                "(inflection point of the decay)"),
+                                style={"padding": "0 12px"},),
+                        ],
+                            style=config.bottomrule),
                     ],
-                        style=config.bottomrule),
-                ],
-                style=config.table_style,
-            )
-        ], style={"paddingBottom": "20px"}),
-        html.Div([
+                    style=config.table_style,
+                )
+            ], style={"paddingBottom": "20px"}),
             html.Div([
-                html.Label("lambda_A", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        lambda_A_vals),
-                    max=max(
-                        lambda_A_vals),
-                    step=None,
-                    value=lambda_A_vals[0],
-                    marks={float(
-                        v): "" for v in lambda_A_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    dots=False,
-                    id="sim4-lambda_A-slider",
+                html.Div([
+                    html.Label("lambda_A", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(lambda_A_vals),
+                        max=max(lambda_A_vals),
+                        step=None,
+                        value=state.get("lambda_A"),
+                        marks={float(v): "" for v in lambda_A_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        dots=False,
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "lambda_A"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("eta", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(eta_vals),
+                        max=max(eta_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("eta"),
+                        marks={float(v): "" for v in eta_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "eta"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("gamma", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(gamma_vals),
+                        max=max(gamma_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("gamma"),
+                        marks={float(v): "" for v in gamma_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "gamma"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("alpha", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(alpha_vals),
+                        max=max(alpha_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("alpha"),
+                        marks={float(v): "" for v in alpha_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "alpha"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("kappa", style={"textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(kappa_vals),
+                        max=max(kappa_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("kappa"),
+                        marks={float(v): "" for v in kappa_vals},
+                        tooltip={"always_visible": True,
+                                 "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "kappa"
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("lambda_C", style={
+                        "textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(
+                            lambda_C_vals),
+                        max=max(
+                            lambda_C_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("lambda_C"),
+                        marks={float(
+                            v): "" for v in lambda_C_vals},
+                        tooltip={
+                            "always_visible": True, "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "lambda_C",
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+                html.Div([
+                    html.Label("midpoint_C", style={
+                        "textAlign": "center"}),
+                    dcc.Slider(
+                        min=min(
+                            midpoint_C_vals),
+                        max=max(
+                            midpoint_C_vals),
+                        step=None,
+                        dots=False,
+                        value=state.get("midpoint_C"),
+                        marks={float(
+                            v): "" for v in midpoint_C_vals},
+                        tooltip={
+                            "always_visible": True, "placement": "bottom"},
+                        updatemode="drag",
+                        id={
+                            "type": "control",
+                            "page": f"{page_prefix + page_id}",
+                            "name": "midpoint_C",
+                        },
+                        persistence=True,
+                    ),
+                ], style={"width": "20%",
+                          "display": "inline-block",
+                          "padding": "0 10px"}),
+            ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
+            html.Div([
+                dcc.Dropdown(
+                    id={
+                        "type": "control",
+                        "page": f"{page_prefix + page_id}",
+                        "name": "iteration",
+                    },
+                    options=iteration_vals,
+                    value=state.get("iteration"),
+                    clearable=False,
+                    style={"width": "200px"},
                     persistence=True,
                 ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
+            ], style={"paddingTop": "20px"}),
             html.Div([
-                html.Label("eta", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        eta_vals),
-                    max=max(
-                        eta_vals),
-                    step=None,
-                    dots=False,
-                    value=eta_vals[-1],
-                    marks={float(
-                        v): "" for v in eta_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-eta-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("gamma", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        gamma_vals),
-                    max=max(
-                        gamma_vals),
-                    step=None,
-                    dots=False,
-                    value=gamma_vals[-1],
-                    marks={float(
-                        v): "" for v in gamma_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-gamma-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("alpha", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        alpha_vals),
-                    max=max(
-                        alpha_vals),
-                    step=None,
-                    dots=False,
-                    value=alpha_vals[-1],
-                    marks={float(
-                        v): "" for v in alpha_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-alpha-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("kappa", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        kappa_vals),
-                    max=max(
-                        kappa_vals),
-                    step=None,
-                    dots=False,
-                    value=kappa_vals[-1],
-                    marks={float(
-                        v): "" for v in kappa_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-kappa-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("lambda_C", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        lambda_C_vals),
-                    max=max(
-                        lambda_C_vals),
-                    step=None,
-                    dots=False,
-                    value=lambda_C_vals[-1],
-                    marks={float(
-                        v): "" for v in lambda_C_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-lambda_C-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-            html.Div([
-                html.Label("midpoint", style={
-                           "textAlign": "center"}),
-                dcc.Slider(
-                    min=min(
-                        midpoint_vals),
-                    max=max(
-                        midpoint_vals),
-                    step=None,
-                    dots=False,
-                    value=midpoint_vals[-1],
-                    marks={float(
-                        v): "" for v in midpoint_vals},
-                    tooltip={
-                        "always_visible": True, "placement": "bottom"},
-                    updatemode="drag",
-                    id="sim4-midpoint-slider",
-                    persistence=True,
-                ),
-            ], style={"width": "20%",
-                      "display": "inline-block",
-                      "padding": "0 10px"}),
-        ], style={"display": "flex", "align-items": "center", "gap": "10px"}),
-        html.Div([
-            dcc.Dropdown(
-                id="sim4-iteration-selector",
-                options=dropdown_options,
-                value="expected",
-                clearable=False,
-                style={
-                    "width": "200px"},
-                persistence=True,
-            ),
-        ], style={"paddingTop": "20px"}),
-        html.Div([
-            dcc.Graph(
-                id="sim4-graph-content",
-                config={"responsive": True})
-        ], style={"width": "60%", "height": "80vh"})
-    ])
-]
+                dcc.Graph(id={
+                    "type": "graph",
+                    "name": "content",
+                    "page": f"{page_prefix + page_id}"
+                },
+                    config={"responsive": True},)
+            ], style={"width": "60%", "height": "80vh"})
+        ])
+    ]
+
+    return layout
 
 
 @callback(
-    Output(
-        "sim4-graph-content", "figure"),
-    Input(
-        "sim4-lambda_A-slider", "value"),
-    Input(
-        "sim4-eta-slider", "value"),
-    Input(
-        "sim4-gamma-slider", "value"),
-    Input(
-        "sim4-alpha-slider", "value"),
-    Input(
-        "sim4-kappa-slider", "value"),
-    Input(
-        "sim4-lambda_C-slider", "value"),
-    Input(
-        "sim4-midpoint-slider", "value"),
-    Input(
-        "sim4-iteration-selector", "value"),
+    Output(f"{page_prefix + page_id}-store", "data"),
+    Input("main-url", "hash"),
+    State(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=False,
 )
-def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
-                 selected_iteration):
-    if selected_iteration == "expected":
+def load_hash_to_store(hash_value, current_store):
+    return callbacks._load_hash_to_store_generic(
+        hash_value, current_store, defaults
+    )
+
+
+@callback(
+    Output({"type": "control", "page": f"{page_prefix + page_id}",
+            "name": ALL}, "value"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+)
+def sync_sliders(store):
+    return callbacks._sync_sliders_generic(store)
+
+
+@callback(
+    Output({"type": "graph", "name": "content",
+            "page": f"{page_prefix + page_id}"},
+           "figure"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+    prevent_initial_call=True,
+)
+def update_graph(store):
+    lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint_C, \
+        iteration = (store[k] for k in [
+            "lambda_A", "eta", "gamma", "alpha", "kappa", "lambda_C",
+            "midpoint_C", "iteration"
+        ])
+
+    if iteration == "expected":
         filters = [
             ("lambda_A",
              "=", lambda_A),
@@ -380,7 +432,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             ("lambda_C",
              "=", lambda_C),
             ("midpoint",
-             "=", midpoint),
+             "=", midpoint_C),
         ]
 
         # read only filtered rows and needed columns
@@ -557,7 +609,7 @@ def update_graph(lambda_A, eta, gamma, alpha, kappa, lambda_C, midpoint,
             os.path.join(
                 config.DATA_DIR,
                 "004_sadness",
-                f"004_sadness_{selected_iteration}.parquet"
+                f"004_sadness_{iteration}.parquet"
             ),
             columns=cols_needed,
             filters=filters
