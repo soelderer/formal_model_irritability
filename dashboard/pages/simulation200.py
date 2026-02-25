@@ -1,5 +1,6 @@
 import dash
 from dash import ALL, MATCH, html, dcc, callback, Output, Input, State
+from dash import callback_context as ctx
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -663,7 +664,7 @@ def layout(state_str: str = None, **_kwargs):
                     id={
                         "type": "control",
                         "page": "simulation200",
-                        "name": "iteration-selector",
+                        "name": "iteration",
                     },
                     options=iteration_vals,
                     value=state.get("iteration"),
@@ -676,7 +677,7 @@ def layout(state_str: str = None, **_kwargs):
                     id={
                         "type": "control",
                         "page": "simulation200",
-                        "name": "environment_type-selector",
+                        "name": "environment_type",
                     },
                     options=environment_type_vals,
                     value=state.get("environment_type"),
@@ -743,18 +744,14 @@ def update_hash(pathname, values, ids, current_hash):
 
 
 @callback(
-    Output({"type": "control", "page": ALL, "name": ALL}, "value"),
+    Output(f"{page_prefix + page_id}-store", "data"),
     Input("main-url", "hash"),
-    State("main-url", "pathname"),
-    State({"type": "control", "page": ALL, "name": ALL}, "id"),
-    State({"type": "control", "page": ALL, "name": ALL}, "value"),
+    State(f"{page_prefix + page_id}-store", "data"),
     prevent_initial_call=False,
 )
-def load_from_hash(
+def load_hash_to_store(
     hash_value,
-    pathname,
-    ids,
-    current_values
+    current_store,
 ):
     """
     Restore sliders/selectors from URL hash if present.
@@ -763,56 +760,73 @@ def load_from_hash(
 
     if not hash_value:
         # No hash → use persisted values
-        print("load_from_hash() prevents Update! no hash")
+        print("load_hash_to_store() prevents Update! no hash")
         raise PreventUpdate
-
-    page = pathname.strip("/")
 
     try:
-        state = json.loads(base64.b64decode(hash_value[1:]))
+        decoded = json.loads(base64.b64decode(hash_value[1:]))
     except Exception:
         # Invalid hash → fallback to persisted values
-        print("load_from_hash() prevents Update! invalid hash")
+        print("load_hash_to_store() prevents Update! invalid hash")
         raise PreventUpdate
 
-    print(f"load_from_hash state: {state}")
+    print(f"load_hash_to_store decoded: {decoded}")
 
-    new_values = []
+    new_store = {**defaults, **decoded}
 
-    for comp_id, current in zip(ids, current_values):
+    if new_store == current_store:
+        raise dash.exceptions.PreventUpdate
+    return new_store
 
-        if comp_id["page"] != page:
-            new_values.append(current)
-            continue
 
-        name = comp_id["name"]
-        new_values.append(state.get(name, current))
+@callback(
+    Output({"type": "control", "page": f"{page_prefix + page_id}",
+           "name": ALL}, "value"),
+    Input(f"{page_prefix + page_id}-store", "data"),
+)
+def sync_sliders(store):
+    print(f"sync_sliders() store: {store}")
 
-    return new_values
+    if not store:
+        print("sync_sliders() prevents update because no store!")
+        raise dash.exceptions.PreventUpdate
+
+    # Make sure the order is correct
+    # names = [item["id"]["name"] for item in ctx.outputs_list]
+    # print(names)
+
+    return [
+        store["lambda_A"],
+        store["eta"],
+        store["gamma"],
+        store["alpha"],
+        store["kappa"],
+        store["C_start"],
+        store["C_end"],
+        store["lambda_C"],
+        store["midpoint_C"],
+        store["I_start"],
+        store["I_end"],
+        store["lambda_I"],
+        store["midpoint_I"],
+        store["w_v_A"],
+        store["iteration"],
+        store["environment_type"],
+    ]
 
 
 @callback(
     Output({"type": "graph", "name": "content", "page": "simulation200"},
            "figure"),
-    Input("main-url", "hash"),
+    Input(f"{page_prefix + page_id}-store", "data"),
     prevent_initial_call=True,
 )
-def update_graph(hash_value):
-    if hash_value:
-        try:
-            state = json.loads(base64.b64decode(hash_value[1:]))
-        except Exception:
-            state = {}
-    else:
-        state = {}  # fallback to defaults
-
-    # Merge with defaults for missing keys
-    state = defaults | state
+def update_graph(store):
 
     lambda_A, eta, gamma, alpha, kappa, C_start, C_end, lambda_C, midpoint_C, \
         I_start, I_end, lambda_I, midpoint_I, w_v_A, iteration, \
         environment_type = (
-            state[k] for k in [
+            store[k] for k in [
                 "lambda_A", "eta", "gamma", "alpha", "kappa",
                 "C_start", "C_end", "lambda_C", "midpoint_C",
                 "I_start", "I_end", "lambda_I", "midpoint_I",
