@@ -123,7 +123,13 @@ def layout(state_str: str = None, **_kwargs):
                             clearable=False,
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-iteration-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("iteration"),
+                        target=f"{page_prefix + page_id}-iteration-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("lambda_A", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -143,7 +149,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-lambda_A-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("lambda_A"),
+                        target=f"{page_prefix + page_id}-lambda_A-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("C", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -163,7 +175,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-C-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("C"),
+                        target=f"{page_prefix + page_id}-C-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("eta", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -183,7 +201,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-eta-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("eta"),
+                        target=f"{page_prefix + page_id}-eta-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("gamma", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -203,7 +227,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-gamma-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("gamma"),
+                        target=f"{page_prefix + page_id}-gamma-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("alpha", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -223,7 +253,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-alpha-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("alpha"),
+                        target=f"{page_prefix + page_id}-alpha-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("kappa", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -243,7 +279,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-kappa-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("kappa"),
+                        target=f"{page_prefix + page_id}-kappa-slider_div",
+                        placement="top",
+                    ),
                 ], style=config.param_config_box_style, body=True),
                 html.Div([
                     dcc.Graph(id={

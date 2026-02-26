@@ -95,7 +95,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-theta_A_w1-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("theta_A_w1"),
+                        target=f"{page_prefix + page_id}-theta_A_w1-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("C", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -115,7 +121,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-C-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("C"),
+                        target=f"{page_prefix + page_id}-C-slider_div",
+                        placement="top",
+                    ),
                     html.Div([
                         html.Label("lambda_A", style={"textAlign": "center"}),
                         dcc.Slider(
@@ -135,7 +147,13 @@ def layout(state_str: str = None, **_kwargs):
                             },
                             persistence=True,
                         ),
-                    ], style=config.slider_div_style),
+                    ], style=config.slider_div_style,
+                        id=f"{page_prefix + page_id}-lambda_A-slider_div"),
+                    dbc.Tooltip(
+                        shared_content.create_tooltip_text("lambda_A"),
+                        target=f"{page_prefix + page_id}-lambda_A-slider_div",
+                        placement="top",
+                    ),
                 ], style=config.param_config_box_style, body=True),
                 html.Div([
                     dcc.Graph(id={
