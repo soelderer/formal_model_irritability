@@ -64,8 +64,7 @@ def parameter_table(param_list: list[str]) -> html.Table:
             "utf8-name": "λ_C",
             "range": "[0, 1]",
             "interpretation": (
-                "Speed at which perceived controllability declines "
-                "across steps"
+                "Speed at which perceived controllability changes across steps"
             ),
         },
 
@@ -89,6 +88,47 @@ def parameter_table(param_list: list[str]) -> html.Table:
             "utf8-name": "I",
             "range": "[0, 1]",
             "interpretation": "Degree of response inhibition",
+        },
+
+        "C_start": {
+                "utf8-name": "C_start",
+                "range": "[0, 1]",
+                "interpretation": "Start value of perceived controllability",
+        },
+
+        "C_end": {
+                "utf8-name": "C_end",
+                "range": "[0, 1]",
+                "interpretation": "End value of perceived controllability",
+        },
+
+        "I_start": {
+                "utf8-name": "I_start",
+                "range": "[0, 1]",
+                "interpretation": "Start value of response inhibition",
+        },
+
+        "I_end": {
+                "utf8-name": "I_end",
+                "range": "[0, 1]",
+                "interpretation": "End value of response inhibition",
+        },
+
+        "lambda_I": {
+            "utf8-name": "λ_I",
+            "range": "[0, 1]",
+            "interpretation": (
+                "Speed at which response inhibition changes across steps"
+            ),
+        },
+
+        "midpoint_I": {
+            "utf8-name": "midpoint_I",
+            "range": ">1",
+            "interpretation": (
+                "Step number at which I reaches 50% between start and stop "
+                "value (inflection point of the decay)"
+            ),
         },
     }
 

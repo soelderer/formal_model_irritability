@@ -339,7 +339,7 @@ def layout(state_str: str = None, **_kwargs):
                     "page": f"{page_prefix + page_id}"
                 },
                     config={"responsive": True},)
-            ], style={"width": "60%", "height": "80vh"})
+            ], style={"width": "60%", "height": "100vh"})
         ])
     ]
 

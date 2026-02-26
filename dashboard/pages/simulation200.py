@@ -13,6 +13,7 @@ import json
 import base64
 import config
 import callbacks
+import shared_content
 
 page_prefix = "simulation"
 page_id = "200"
@@ -140,151 +141,10 @@ def layout(state_str: str = None, **_kwargs):
                 html.P(
                     children=description
                 ),
-                html.Table(
-                    [
-                        html.Tr([
-                            html.Th("Parameter", style={
-                                    "padding": "0 12px"}),
-                            html.Th("Range", style={
-                                    "padding": "0 12px"}),
-                            html.Th("Interpretation", style={
-                                    "padding": "0 12px"}),
-                        ], style={**config.toprule, **config.midrule}),
-                        # html.Tr([
-                        #     html.Td("eta", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td("[0, 1]", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td(
-                        #         ("Learning rate: how quickly value "
-                        #          "expectations update"),
-                        #         style={"padding": "0 12px"}),
-                        # ]),
-                        # html.Tr([
-                        #     html.Td("gamma", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td("[0, 1]", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td(("Discount factor: weight given to "
-                        #             "future rewards"),
-                        #             style={"padding": "0 12px"}),
-                        # ]),
-                        # html.Tr([
-                        #     html.Td("lambda_A", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td("[0, 1]", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td(("Affective inertia: higher values → "
-                        #             "slower emotion updates"),
-                        #             style={"padding": "0 12px"}),
-                        # ]),
-                        # html.Tr([
-                        #     html.Td("alpha", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td("[0, 1]", style={
-                        #             "padding": "0 12px"}),
-                        #     html.Td(("Relative weighting of prediction errors "
-                        #             "versus absolute rewards as affective inputs "
-                        #              "(1 ... only RPE)"),
-                        #             style={"padding": "0 12px"}),
-                        # ]),
-                        html.Tr([
-                            html.Td("kappa", style={
-                                    "padding": "0 12px"}),
-                            html.Td("> 1", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Negativity bias: negative affective inputs are "
-                                "amplified relative to positive ones"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("C_start", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("Start value of perceived controllability"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("C_end", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("End value of perceived controllability"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("lambda_C", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Speed at which "
-                                "perceived controllability changes across "
-                                "development"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("midpoint_C", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,100]", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Episode at which C reaches 50% "
-                                "(inflection point of the decay)"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("I_start", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("Start value of response inhibition"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("I_end", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td(("End value of response inhibition"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("lambda_I", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,1]", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Speed at which "
-                                "response inhibition changes across "
-                                "development"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("midpoint_I", style={
-                                    "padding": "0 12px"}),
-                            html.Td("[0,100]", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Episode at which I reaches 50% "
-                                "(inflection point of the decay)"),
-                                style={"padding": "0 12px"},),
-                        ]),
-                        html.Tr([
-                            html.Td("v_w_A", style={
-                                    "padding": "0 12px"}),
-                            html.Td(">=0", style={
-                                    "padding": "0 12px"}),
-                            html.Td((
-                                "Contribution of frustration/anger to "
-                                "response vigor"),
-                                style={"padding": "0 12px"},),
-                        ], style=config.bottomrule),
-                    ],
-                    style=config.table_style,
-                )
+                shared_content.parameter_table(
+                    ["kappa", "C_start", "C_end", "lambda_C", "midpoint_C",
+                     "I_start", "I_end", "lambda_I", "midpoint_I", "w_v_A"]
+                ),
             ], style={"paddingBottom": "20px"}),
 
             # ---------------------- SLIDERS ---------------------------------#
@@ -693,7 +553,7 @@ def layout(state_str: str = None, **_kwargs):
                         "name": "content"
                     },
                     config={"responsive": True})
-            ], style={"width": "60%", "height": "80vh"})
+            ], style={"width": "60%", "height": "100vh"})
         ])
     ]
 
