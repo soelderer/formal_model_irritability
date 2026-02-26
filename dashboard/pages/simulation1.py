@@ -1,5 +1,6 @@
 import dash
 from dash import html, dcc, callback, Output, Input, State, ALL
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 import numpy as np
@@ -68,87 +69,82 @@ def layout(state_str: str = None, **_kwargs):
                 html.P(children=description),
                 shared_content.parameter_table(
                     ["lambda_A", "C", "theta_A_w1"]),
-            ], style={"paddingBottom": "20px"}),
+            ], style={"paddingBottom": "40px"}),
 
             # ---------------------- SLIDERS ---------------------------------#
 
             html.Div([
+                dbc.Card([
+                    html.Div([
+                        html.Label("theta_A_w1", style={
+                            "textAlign": "center"}),
+                        dcc.Slider(
+                            min=min(theta_vals),
+                            max=max(theta_vals),
+                            step=None,
+                            value=state.get("theta_A_w1"),
+                            marks={int(v): "" for v in theta_vals},
+                            tooltip={"always_visible": True,
+                                     "placement": "bottom"},
+                            updatemode="drag",
+                            dots=False,
+                            id={
+                                "type": "control",
+                                "page": f"{page_prefix + page_id}",
+                                "name": "theta_A_w1"
+                            },
+                            persistence=True,
+                        ),
+                    ], style=config.slider_div_style),
+                    html.Div([
+                        html.Label("C", style={"textAlign": "center"}),
+                        dcc.Slider(
+                            min=min(C_vals),
+                            max=max(C_vals),
+                            step=None,
+                            dots=False,
+                            value=state.get("C"),
+                            marks={float(v): "" for v in C_vals},
+                            tooltip={"always_visible": True,
+                                     "placement": "bottom"},
+                            updatemode="drag",
+                            id={
+                                "type": "control",
+                                "page": f"{page_prefix + page_id}",
+                                "name": "C"
+                            },
+                            persistence=True,
+                        ),
+                    ], style=config.slider_div_style),
+                    html.Div([
+                        html.Label("lambda_A", style={"textAlign": "center"}),
+                        dcc.Slider(
+                            min=min(lambda_A_vals),
+                            max=max(lambda_A_vals),
+                            step=None,
+                            value=state.get("lambda_A"),
+                            marks={float(v): "" for v in lambda_A_vals},
+                            tooltip={"always_visible": True,
+                                     "placement": "bottom"},
+                            updatemode="drag",
+                            dots=False,
+                            id={
+                                "type": "control",
+                                "page": f"{page_prefix + page_id}",
+                                "name": "lambda_A"
+                            },
+                            persistence=True,
+                        ),
+                    ], style=config.slider_div_style),
+                ], style=config.param_config_box_style, body=True),
                 html.Div([
-                    html.Label("theta_A_w1", style={
-                        "textAlign": "center"}),
-                    dcc.Slider(
-                        min=min(theta_vals),
-                        max=max(theta_vals),
-                        step=None,
-                        value=state.get("theta_A_w1"),
-                        marks={int(v): "" for v in theta_vals},
-                        tooltip={"always_visible": True,
-                                 "placement": "bottom"},
-                        updatemode="drag",
-                        dots=False,
-                        id={
-                            "type": "control",
-                            "page": f"{page_prefix + page_id}",
-                            "name": "theta_A_w1"
-                        },
-                        persistence=True,
-                    ),
-                ], style={"width": "20%",
-                          "display": "inline-block",
-                          "padding": "0 10px"}),
-                html.Div([
-                    html.Label("C", style={"textAlign": "center"}),
-                    dcc.Slider(
-                        min=min(C_vals),
-                        max=max(C_vals),
-                        step=None,
-                        dots=False,
-                        value=state.get("C"),
-                        marks={float(v): "" for v in C_vals},
-                        tooltip={"always_visible": True,
-                                 "placement": "bottom"},
-                        updatemode="drag",
-                        id={
-                            "type": "control",
-                            "page": f"{page_prefix + page_id}",
-                            "name": "C"
-                        },
-                        persistence=True,
-                    ),
-                ], style={"width": "20%",
-                          "display": "inline-block",
-                          "padding": "0 10px"}),
-                html.Div([
-                    html.Label("lambda_A", style={"textAlign": "center"}),
-                    dcc.Slider(
-                        min=min(lambda_A_vals),
-                        max=max(lambda_A_vals),
-                        step=None,
-                        value=state.get("lambda_A"),
-                        marks={float(v): "" for v in lambda_A_vals},
-                        tooltip={"always_visible": True,
-                                 "placement": "bottom"},
-                        updatemode="drag",
-                        dots=False,
-                        id={
-                            "type": "control",
-                            "page": f"{page_prefix + page_id}",
-                            "name": "lambda_A"
-                        },
-                        persistence=True,
-                    ),
-                ], style={"width": "20%",
-                          "display": "inline-block",
-                          "padding": "0 10px"}),
-            ], style={"display": "flex", "align-items": "center", "gap": "10px",
-                      "padding-bottom": "40px"}),
-            html.Div([
-                dcc.Graph(id={
-                    "type": "graph",
-                    "page": f"{page_prefix + page_id}",
-                    "name": "content"
-                })
-            ], style={"width": "45%"})
+                    dcc.Graph(id={
+                        "type": "graph",
+                        "page": f"{page_prefix + page_id}",
+                        "name": "content"
+                    })
+                ], style={"width": "60%"})
+            ], style=config.plot_and_param_box_style)
         ])
     ]
 

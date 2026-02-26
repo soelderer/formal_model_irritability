@@ -2,7 +2,7 @@ from dash import html
 import config
 
 
-def parameter_table(param_list: list[str]) -> html.Table:
+def parameter_table(param_list: list[str]) -> html.Div:
     parameter_dict = {
         "theta_A_w1": {
             "utf8-name": "θ_A_w1",
@@ -148,21 +148,23 @@ def parameter_table(param_list: list[str]) -> html.Table:
         style={**config.bottomrule},
     )
 
-    table = html.Table(
-        [
-            html.Tr(
-                [
-                    html.Th("Parameter", style={
-                        "padding": "0 12px"}),
-                    html.Th("Range", style={"padding": "0 12px"}),
-                    html.Th("Interpretation", style={
-                        "padding": "0 12px"}),
-                ],
-                style={**config.toprule, **config.midrule},
-            ),
-            *trs
-        ],
-        style=config.table_style,
-    )
+    table = html.Div([
+        html.Table(
+            [
+                html.Tr(
+                    [
+                        html.Th("Parameter", style={
+                            "padding": "0 12px"}),
+                        html.Th("Range", style={"padding": "0 12px"}),
+                        html.Th("Interpretation", style={
+                            "padding": "0 12px"}),
+                    ],
+                    style={**config.toprule, **config.midrule},
+                ),
+                *trs
+            ],
+            style=config.table_style,
+        )
+    ], style={"paddingTop": "10px"})
 
     return table
