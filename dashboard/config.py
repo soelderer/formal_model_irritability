@@ -28,7 +28,7 @@ plot_and_param_box_style = {
 slider_div_style = {
     "width": "100%",
     "display": "inline-block",
-    "paddingBottom": "10px",
+    "paddingBottom": "20px",
 }
 
 param_config_box_style = {
