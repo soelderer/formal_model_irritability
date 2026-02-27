@@ -1,4 +1,5 @@
-from dash import html
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 import config
 
 parameter_dict = {
@@ -190,3 +191,77 @@ def create_tooltip_text(param: str):
 
     else:
         return []
+
+
+def create_parameter_slider(param: str, vals: list, mark_type: str, default,
+                            page_prefix: str, page_id: str,
+                            slider_div_style=config.slider_div_style) -> list:
+
+    if mark_type == "int":
+        marks = {int(v): "" for v in vals}
+    elif mark_type == "float":
+        marks = {float(v): "" for v in vals}
+    else:
+        raise ValueError(
+            f"Got invalid type {mark_type} for marks, expected int or float.")
+
+    elements = [
+        html.Div([
+            html.Label(param, style={"textAlign": "center"}),
+            dcc.Slider(
+                min=min(vals),
+                max=max(vals),
+                step=None,
+                value=default,
+                marks=marks,
+                tooltip={"always_visible": True,
+                         "placement": "bottom"},
+                updatemode="drag",
+                dots=False,
+                id={
+                 "type": "control",
+                 "page": f"{page_prefix + page_id}",
+                 "name": param
+                 },
+                persistence=True,
+            ),
+        ], style=slider_div_style,
+            id=f"{page_prefix + page_id}-{param}-slider_div"),
+        dbc.Tooltip(
+            create_tooltip_text(param),
+            target=f"{page_prefix + page_id}-{param}-slider_div",
+            placement="top",
+        ),
+    ]
+
+    return elements
+
+
+def create_parameter_dropdown(
+        param: str, options: list, default, page_prefix: str, page_id: str,
+        slider_div_style=config.slider_div_style
+) -> list:
+
+    elements = [
+        html.Div([
+            dcc.Dropdown(
+                id={
+                    "type": "control",
+                    "page": f"{page_prefix + page_id}",
+                    "name": param,
+                },
+                options=options,
+                value=default,
+                clearable=False,
+                persistence=True,
+            ),
+        ], style=slider_div_style,
+            id=f"{page_prefix + page_id}-{param}-slider_div"),
+        dbc.Tooltip(
+            create_tooltip_text(param),
+            target=f"{page_prefix + page_id}-{param}-slider_div",
+            placement="top",
+        ),
+    ]
+
+    return elements

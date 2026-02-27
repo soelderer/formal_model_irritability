@@ -109,7 +109,7 @@ def layout(state_str: str = None, **_kwargs):
                     children=description
                 ),
                 shared_content.parameter_table(
-                    ["lambda_A", "C", "eta", "gamma", "alpha", "kappa",
+                    ["lambda_A", "eta", "gamma", "alpha", "kappa",
                      "lambda_C", "midpoint_C"]
                 )
             ], style={"paddingBottom": "20px"}),
@@ -118,215 +118,39 @@ def layout(state_str: str = None, **_kwargs):
 
             html.Div([
                 dbc.Card([
-                    html.Div([
-                        dcc.Dropdown(
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "iteration",
-                            },
-                            options=iteration_vals,
-                            value=state.get("iteration"),
-                            clearable=False,
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-iteration-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("iteration"),
-                        target=f"{page_prefix + page_id}-iteration-slider_div",
-                        placement="top",
+                    *shared_content.create_parameter_dropdown(
+                        "iteration", iteration_vals, state.get("iteration"),
+                        page_prefix, page_id
                     ),
-                    html.Div([
-                        html.Label("lambda_A", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(lambda_A_vals),
-                            max=max(lambda_A_vals),
-                            step=None,
-                            value=state.get("lambda_A"),
-                            marks={float(v): "" for v in lambda_A_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            dots=False,
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "lambda_A"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-lambda_A-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("lambda_A"),
-                        target=f"{page_prefix + page_id}-lambda_A-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("eta", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(eta_vals),
-                            max=max(eta_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("eta"),
-                            marks={float(v): "" for v in eta_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "eta"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-eta-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("eta"),
-                        target=f"{page_prefix + page_id}-eta-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("gamma", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(gamma_vals),
-                            max=max(gamma_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("gamma"),
-                            marks={float(v): "" for v in gamma_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "gamma"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-gamma-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("gamma"),
-                        target=f"{page_prefix + page_id}-gamma-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("alpha", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(alpha_vals),
-                            max=max(alpha_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("alpha"),
-                            marks={float(v): "" for v in alpha_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "alpha"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-alpha-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("alpha"),
-                        target=f"{page_prefix + page_id}-alpha-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("kappa", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(kappa_vals),
-                            max=max(kappa_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("kappa"),
-                            marks={float(v): "" for v in kappa_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "kappa"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-kappa-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("kappa"),
-                        target=f"{page_prefix + page_id}-kappa-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("lambda_C", style={
-                            "textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(
-                                lambda_C_vals),
-                            max=max(
-                                lambda_C_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("lambda_C"),
-                            marks={float(
-                                v): "" for v in lambda_C_vals},
-                            tooltip={
-                                "always_visible": True, "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "lambda_C",
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-lambda_C-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("lambda_C"),
-                        target=f"{page_prefix + page_id}-lambda_C-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("midpoint_C", style={
-                            "textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(
-                                midpoint_C_vals),
-                            max=max(
-                                midpoint_C_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("midpoint_C"),
-                            marks={float(
-                                v): "" for v in midpoint_C_vals},
-                            tooltip={
-                                "always_visible": True, "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "midpoint_C",
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-midpoint_C-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("midpoint_C"),
-                        target=f"{page_prefix + page_id}-midpoint_C-slider_div",
-                        placement="top",
-                    ),
+
+                    *shared_content.create_parameter_slider(
+                        "lambda_A", lambda_A_vals, "float",
+                        state.get("lambda_A"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "eta", eta_vals, "float",
+                        state.get("eta"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "gamma", gamma_vals, "float",
+                        state.get("gamma"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "alpha", alpha_vals, "float",
+                        state.get("alpha"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "kappa", kappa_vals, "float",
+                        state.get("kappa"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "lambda_C", lambda_C_vals, "float",
+                        state.get("lambda_C"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "midpoint_C", midpoint_C_vals, "float",
+                        state.get("midpoint_C"), page_prefix, page_id),
+
                 ], style=config.param_config_box_style, body=True),
                 html.Div([
                     dcc.Graph(id={

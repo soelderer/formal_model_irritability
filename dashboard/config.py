@@ -31,6 +31,10 @@ slider_div_style = {
     "paddingBottom": "20px",
 }
 
+hidden_style = {
+    "display": "none",
+}
+
 param_config_box_style = {
     "width": "20%",
     "marginTop": "80px",

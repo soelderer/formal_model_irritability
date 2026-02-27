@@ -1,7 +1,6 @@
 from dash import Dash, html, dcc, State
 import dash
 import dash_bootstrap_components as dbc
-import webbrowser
 import threading
 import config
 import callbacks

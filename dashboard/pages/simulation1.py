@@ -75,85 +75,17 @@ def layout(state_str: str = None, **_kwargs):
 
             html.Div([
                 dbc.Card([
-                    html.Div([
-                        html.Label("theta_A_w1", style={
-                            "textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(theta_vals),
-                            max=max(theta_vals),
-                            step=None,
-                            value=state.get("theta_A_w1"),
-                            marks={int(v): "" for v in theta_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            dots=False,
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "theta_A_w1"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-theta_A_w1-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("theta_A_w1"),
-                        target=f"{page_prefix + page_id}-theta_A_w1-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("C", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(C_vals),
-                            max=max(C_vals),
-                            step=None,
-                            dots=False,
-                            value=state.get("C"),
-                            marks={float(v): "" for v in C_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "C"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-C-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("C"),
-                        target=f"{page_prefix + page_id}-C-slider_div",
-                        placement="top",
-                    ),
-                    html.Div([
-                        html.Label("lambda_A", style={"textAlign": "center"}),
-                        dcc.Slider(
-                            min=min(lambda_A_vals),
-                            max=max(lambda_A_vals),
-                            step=None,
-                            value=state.get("lambda_A"),
-                            marks={float(v): "" for v in lambda_A_vals},
-                            tooltip={"always_visible": True,
-                                     "placement": "bottom"},
-                            updatemode="drag",
-                            dots=False,
-                            id={
-                                "type": "control",
-                                "page": f"{page_prefix + page_id}",
-                                "name": "lambda_A"
-                            },
-                            persistence=True,
-                        ),
-                    ], style=config.slider_div_style,
-                        id=f"{page_prefix + page_id}-lambda_A-slider_div"),
-                    dbc.Tooltip(
-                        shared_content.create_tooltip_text("lambda_A"),
-                        target=f"{page_prefix + page_id}-lambda_A-slider_div",
-                        placement="top",
-                    ),
+                    *shared_content.create_parameter_slider(
+                        "theta_A_w1", theta_vals, "int",
+                        state.get("theta_A_w1"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "C", C_vals, "float",
+                        state.get("C"), page_prefix, page_id),
+
+                    *shared_content.create_parameter_slider(
+                        "lambda_A", lambda_A_vals, "float",
+                        state.get("lambda_A"), page_prefix, page_id),
                 ], style=config.param_config_box_style, body=True),
                 html.Div([
                     dcc.Graph(id={
