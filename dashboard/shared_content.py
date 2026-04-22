@@ -35,6 +35,24 @@ parameter_dict = {
         "Affective inertia: higher values → slower emotion updates",
     },
 
+    "lambda_A_pos": {
+        "utf8-name": "λ_A_pos",
+        "range": "[0, 1]",
+        "interpretation":
+            ("Affective inertia for positive emotions: higher values → "
+             "slower emotion updates",
+             )
+    },
+
+    "lambda_A_neg": {
+        "utf8-name": "λ_A_neg",
+        "range": "[0, 1]",
+        "interpretation":
+            ("Affective inertia for negative emotions: higher values → "
+             "slower emotion updates",
+             )
+    },
+
     "eta": {
         "utf8-name": "η",
         "range": "[0, 1]",
