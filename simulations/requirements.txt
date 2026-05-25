@@ -8,3 +8,5 @@ solara
 altair
 pyarrow
 pytest
+plotly
+kaleido
