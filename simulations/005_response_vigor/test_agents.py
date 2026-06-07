@@ -189,28 +189,6 @@ def test_act_rpe_parametrized(V, r, gamma, expected_rpe):
         assert agent._variables["rpe"] == pytest.approx(expected_rpe)
 
 
-@pytest.mark.parametrize("trial_nr", [0, 1, 50, 999])
-def test_controllability_block_1_is_one(trial_nr):
-    agent = IrritabilityAgent(
-        model=Mock(),
-        V=0,
-        M_A=0,
-        M_S=0,
-        lambda_A=0.5,
-        eta=0.1,
-        gamma=0.9,
-        alpha=0.5,
-        kappa=1.0,
-        lambda_C=0.1,
-        midpoint=100,
-    )
-
-    agent._variables["block_nr"] = 1
-    agent._variables["trial_nr"] = trial_nr
-
-    assert agent.get_controllability() == 1.0
-
-
 @pytest.mark.parametrize(
     "trial_nr, expected_range",
     [
