@@ -166,11 +166,8 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         lambda_C = self._variables["lambda_C"]
         midpoint = self._variables["midpoint"]
 
-        if self._variables["block_nr"] == 1:
-            return 1.0
-        elif self._variables["block_nr"] == 2:
-            t = self._variables["trial_nr"]
-            return 1 / (1 + math.exp(lambda_C * (t - midpoint)))
+        t = self._variables["trial_nr"]
+        return 1 / (1 + math.exp(lambda_C * (t - midpoint)))
 
     def update_emotions(self):
         r = self._variables["r"]
