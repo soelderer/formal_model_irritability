@@ -15,9 +15,9 @@ class IrritabilityModel(mesa.Model):
     def __init__(
         self,
         seed: int,
-        V: RealNumber,             # estimated value of the current state
-        M_A: RealNumber,           # current anger/frustration
-        M_S: RealNumber,           # current sadness
+        V0: RealNumber,             # estimated value of the current state
+        M_A0: RealNumber,           # current anger/frustration
+        M_S0: RealNumber,           # current sadness
         C: RealNumber,
         lambda_A: RealNumber,
         eta: RealNumber,
@@ -53,9 +53,9 @@ class IrritabilityModel(mesa.Model):
         IrritabilityAgent.create_agents(
             model=self,
             n=1,  # number of agents
-            V=V,
-            M_A=M_A,
-            M_S=M_S,
+            V0=V0,
+            M_A0=M_A0,
+            M_S0=M_S0,
             C=C,
             lambda_A=lambda_A,
             eta=eta,

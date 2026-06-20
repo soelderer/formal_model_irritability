@@ -26,6 +26,9 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
         "V",             # estimated value of the current state
         "M_A",           # current anger/frustration
         "M_S",           # current sadness
+        "V0",            # initial state value
+        "M_A0",          # initial anger/frustration
+        "M_S0",          # initial sadness
         "r",             # current reward
         "rpe",           # current reward prediction error
         "v",
@@ -52,9 +55,9 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
     def __init__(
         self,
         model: mesa.Model,
-        V: RealNumber,
-        M_A: RealNumber,
-        M_S: RealNumber,
+        V0: RealNumber,
+        M_A0: RealNumber,
+        M_S0: RealNumber,
         C: RealNumber,
         lambda_A: RealNumber,
         eta: RealNumber,
@@ -101,9 +104,12 @@ class IrritabilityAgent(mesa.discrete_space.FixedAgent):
             raise ValueError(f"I must be between 0 and 1, got {I}")
 
         self._variables = {
-            "V": V,
-            "M_A": M_A,
-            "M_S": M_S,
+            "V0": V0,
+            "M_A0": M_A0,
+            "M_S0": M_S0,
+            "V": V0,
+            "M_A": M_A0,
+            "M_S": M_S0,
             "C": C,
             "r": None,
             "rpe": None,
